@@ -1,6 +1,6 @@
 # React + TypeScript + Vite
 
-Usos: react, MUI, typescript, vite, react hook form, mongodb, axios 
+Usos: react, MUI, typescript, vite, react hook form, mongodb, axios , firebase
 APIs: https://world-es.openfoodfacts.org/ /// mapbox
 
 
