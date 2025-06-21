@@ -2,7 +2,6 @@
   font-family: "Sour Gummy", sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -11,13 +10,27 @@
   --secondary-color: #eb71f0;
 }
 
+
 body {
   margin: 0;
+  margin-top: 20px;
   padding: 0;
   min-width: 320px;
-  /* display: flex;
-  place-items: center;
-  min-height: 100vh; */
+  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+}
+
+#root {
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  box-sizing: border-box;
+  min-height: 100%;
+  position: relative; /* Afegim position relative */
+  height: auto;  
 }
 
 h1 {
@@ -25,15 +38,19 @@ h1 {
   line-height: 1.1;
 }
 
+label {
+  margin: 1rem;
+}
+
 button {
   display: flex;
-  /* justify-content: center; */
-  background-color: var(--primary-color);
+  /* background-color: var(--primary-color); */
   color: var(--secondary-color);
   font-family: "Sour Gummy", sans-serif;
   font-size: 30px;
   border-radius: 8px;
   border: 1px solid transparent;
+  /* border-style: outset; */
   padding: 0.6em 1.2em;
   font-weight: 500;
   cursor: pointer;

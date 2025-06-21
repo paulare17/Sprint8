@@ -12,11 +12,32 @@ import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AddHomeIcon from "@mui/icons-material/AddHome";
+import { useNavigate } from "react-router-dom";
 
 const pages = ["Calendari", "Gràfics", "Mapa", "Pendents"];
-const settings = ["Usuari", "Account", "Dashboard", "Logout"];
+const settings = ["Perfil", "Account", "Dashboard", "Logout"];
 
 function Navbar() {
+//navegació entre pàgines
+const navigate = useNavigate();
+
+const handleNavClick = (page: string) => {
+    handleCloseNavMenu();
+    if (page === "Pendents") {
+      navigate('/pendents');
+    };
+    if (page === "Gràfics") {
+      navigate('/grafics')
+    };
+    if (page === "Mapa") {
+      navigate('/mapa')
+    };
+    if (page === "Caledari") {
+      navigate('/calendari')
+    };
+  };
+
+
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
@@ -39,6 +60,18 @@ function Navbar() {
     setAnchorElUser(null);
   };
 
+  const handleSettingClick = (setting: string) => {
+    handleCloseUserMenu();
+    if (setting === "Perfil") {
+      navigate('/profile');
+    }
+    // Aquí pots afegir més navegació per altres settings
+  };
+
+  const handleHomeClick = () => {
+    navigate('/');
+  };
+
   return (
     <AppBar
       className="navbar"
@@ -55,15 +88,31 @@ function Navbar() {
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AddHomeIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1, transform: "scale(1.5)" }} />
+          <AddHomeIcon 
+            onClick={handleHomeClick}
+            sx={{ 
+              display: { xs: "none", md: "flex" }, 
+              mr: 1, 
+              transform: "scale(1.5)",
+              cursor: "pointer",
+              "&:hover": {
+                opacity: 0.8,
+              },
+            }} 
+          />
           <Typography
             className="logo"
             variant="h6"
             noWrap
             component="a"
-            href="#app-bar-with-responsive-menu"
+            onClick={handleHomeClick}
             sx={{
               display: { xs: "none", md: "flex" },
+              cursor: "pointer",
+              textDecoration: "none",
+              "&:hover": {
+                opacity: 0.8,
+              },
             }}
           >
             Inprocode
@@ -96,22 +145,37 @@ function Navbar() {
               sx={{ display: { xs: "block", md: "none" } }}
             >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
+                <MenuItem key={page} onClick={() => handleNavClick(page)}>
                   <Typography sx={{ textAlign: "center" }}>{page}</Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
-          <AddHomeIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
+          <AddHomeIcon 
+            onClick={handleHomeClick}
+            sx={{ 
+              display: { xs: "flex", md: "none" }, 
+              mr: 1,
+              cursor: "pointer",
+              "&:hover": {
+                opacity: 0.8,
+              },
+            }} 
+          />
           <Typography
             className="logo"
             variant="h5"
             noWrap
             component="a"
-            href="#app-bar-with-responsive-menu"
+            onClick={handleHomeClick}
             sx={{
               display: { xs: "flex", md: "none" },
               flexGrow: 1,
+              cursor: "pointer",
+              textDecoration: "none",
+              "&:hover": {
+                opacity: 0.8,
+              },
             }}
           >
             Inprocode
@@ -121,7 +185,7 @@ function Navbar() {
               <Button
               className="navbar-menu"
                 key={page}
-                onClick={handleCloseNavMenu}
+                onClick={() => handleNavClick(page)}
                 sx={{ my: 2, color: "white", display: "block", mx: 2 }}
               >
                 {page}
@@ -151,7 +215,7 @@ function Navbar() {
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                <MenuItem key={setting} onClick={() => handleSettingClick(setting)}>
                   <Typography sx={{ textAlign: "center" }}>
                     {setting}
                   </Typography>
