@@ -4,11 +4,20 @@ import type { ToDoItem } from '../types';
 interface CheckProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   data: ToDoItem;
-  }
+  onDelete?: (itemId: string) => void;
+}
 
 
-const Check: React.FC<CheckProps> = ({onChange, data}) => {
+const Check: React.FC<CheckProps> = ({onChange, data, onDelete}) => {
   const {id, task, done, supermarket} = data
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(id);
+    }
+  };
 
   return (
     <label className="task-item">
@@ -33,6 +42,15 @@ const Check: React.FC<CheckProps> = ({onChange, data}) => {
           </div>
         )}
       </div>
+      {onDelete && !done && (
+        <button 
+          className="delete-item-btn"
+          onClick={handleDelete}
+          title="Eliminar producte"
+        >
+          🗑️
+        </button>
+      )}
     </label>
   )
 }

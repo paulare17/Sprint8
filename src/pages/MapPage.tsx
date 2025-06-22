@@ -153,16 +153,31 @@ const MapPage: React.FC = () => {
           });
         }
 
-        // Afegir nous marcadors
+        // Afegir nous marcadors amb diferenciació segons si tenen productes assignats
         realSupermarkets.forEach(supermarket => {
+          // Verificar si aquest supermercat té productes assignats a la llista actual
+          const hasAssignedProducts = currentList.items.some(item => 
+            item.supermarket?.id === supermarket.id
+          );
+          
           const el = document.createElement('div');
           el.className = 'mapbox-marker';
-          el.innerHTML = '🏪';
-          el.style.fontSize = '24px';
-          el.style.cursor = 'pointer';
-          el.title = `${supermarket.name} - ${supermarket.distance}m`;
           
-
+          // Usar different emojis/styles based on whether supermarket has assigned products
+          if (hasAssignedProducts) {
+            el.innerHTML = '🛒'; // Shopping cart for supermarkets with assigned products
+            el.style.fontSize = '28px';
+            el.classList.add('marker-with-products');
+          } else {
+            el.innerHTML = '🏪'; // Regular store emoji for supermarkets without products
+            el.style.fontSize = '24px';
+            el.classList.add('marker-without-products');
+          }
+          
+          el.style.cursor = 'pointer';
+          el.title = hasAssignedProducts 
+            ? `${supermarket.name} - Té productes assignats` 
+            : `${supermarket.name}`;
 
           el.onclick = () => {
             setSelectedSupermarket(supermarket);
@@ -240,6 +255,18 @@ const MapPage: React.FC = () => {
         {isLoading && <p>⏳ Carregant mapa...</p>}
       </div>
 
+      {/* Llegenda del mapa */}
+      <div className="map-legend">
+        <div className="legend-item">
+          <span className="legend-icon">🏪</span>
+          <span>Supermercats disponibles</span>
+        </div>
+        <div className="legend-item">
+          <span className="legend-icon legend-icon-large">🛒</span>
+          <span>Amb productes assignats</span>
+        </div>
+      </div>
+
       <div className="map-container-wrapper" style={{ position: 'relative', width: '100%', height: '500px' }}>
         {isLoading && (
           <div className="map-loading" style={{ 
@@ -272,15 +299,52 @@ const MapPage: React.FC = () => {
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
             zIndex: 1000,
-            minWidth: '250px'
+            minWidth: '280px',
+            maxWidth: '350px'
           }}>
             <div className="popup-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <h3 style={{ margin: 0 }}>🏪 {selectedSupermarket.name}</h3>
+              <h3 style={{ margin: 0 }}>
+                {currentList.items.some(item => item.supermarket?.id === selectedSupermarket.id) ? '🛒' : '🏪'} 
+                {selectedSupermarket.name}
+              </h3>
               <button onClick={() => setSelectedSupermarket(null)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
             </div>
             <div className="popup-content">
               <p style={{ margin: '5px 0' }}>📍 {selectedSupermarket.address}</p>
-              <p style={{ margin: '5px 0' }}>📏 {selectedSupermarket.distance}m</p>
+              
+              {/* Mostrar productos assignados si n'hi ha */}
+              {(() => {
+                const assignedProducts = currentList.items.filter(item => 
+                  item.supermarket?.id === selectedSupermarket.id
+                );
+                
+                if (assignedProducts.length > 0) {
+                  return (
+                    <div style={{ marginTop: '10px', padding: '10px', background: '#f8f9fa', borderRadius: '4px' }}>
+                      <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#28a745' }}>
+                        ✅ Productes assignats ({assignedProducts.length}):
+                      </h4>
+                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '13px' }}>
+                        {assignedProducts.slice(0, 3).map(item => (
+                          <li key={item.id} style={{ 
+                            textDecoration: item.done ? 'line-through' : 'none',
+                            color: item.done ? '#6c757d' : 'inherit'
+                          }}>
+                            {item.task} {item.done ? '✓' : ''}
+                          </li>
+                        ))}
+                        {assignedProducts.length > 3 && (
+                          <li style={{ fontStyle: 'italic', color: '#6c757d' }}>
+                            ... i {assignedProducts.length - 3} més
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+              
               <button 
                 onClick={() => window.location.href = '/pendents'}
                 style={{ 
@@ -290,10 +354,11 @@ const MapPage: React.FC = () => {
                   padding: '8px 16px', 
                   borderRadius: '4px', 
                   cursor: 'pointer',
-                  marginTop: '10px'
+                  marginTop: '10px',
+                  width: '100%'
                 }}
               >
-                📋 Afegir productes
+                📋 Gestionar llista
               </button>
             </div>
           </div>
@@ -301,9 +366,10 @@ const MapPage: React.FC = () => {
       </div>
 
       <div className="map-info">
-        <p>🏪 {supermarkets.length} supermercats trobats</p>
-        <p>📝 {currentList.items.filter(item => !item.done).length} productes pendents</p>
-
+        <span>🏪 {supermarkets.length} supermercats</span>
+        <span>🛒 {supermarkets.filter(s => currentList.items.some(item => item.supermarket?.id === s.id)).length} amb productes</span>
+        <span>📝 {currentList.items.filter(item => !item.done).length} pendents</span>
+        <span>✅ {currentList.items.filter(item => item.done).length} comprats</span>
       </div>
     </div>
   );

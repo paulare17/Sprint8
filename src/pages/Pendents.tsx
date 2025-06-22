@@ -5,7 +5,10 @@ import Container from "../components/todolist/Container";
 // import TaskList from "../components/todolist/TaskList";
 import { useShoppingList } from "../contexts/ShoppingListContext";
 import { useAuth } from "../contexts/AuthContext";
+import { useCalendar } from "../contexts/CalendarContext";
+import SupermarketSelector from "../components/SupermarketSelector";
 import CreateListForm from "../components/CreateListForm";
+import type { Supermarket } from "../services/supermarketService";
 
 function Pendents() {
   const { currentUser } = useAuth();
@@ -16,11 +19,18 @@ function Pendents() {
     joinList, 
     isLoading 
   } = useShoppingList();
+  const { createReminder } = useCalendar();
   
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showJoinForm, setShowJoinForm] = useState(false);
   const [joinListId, setJoinListId] = useState('');
   const [joinError, setJoinError] = useState('');
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderForm, setReminderForm] = useState({
+    itemName: '',
+    intervalWeeks: 2
+  });
+  const [selectedReminderSupermarket, setSelectedReminderSupermarket] = useState<Supermarket | null>(null);
 
   const handleCreateList = (listId: string) => {
     setShowCreateForm(false);
@@ -52,6 +62,34 @@ function Pendents() {
 
   const handleSwitchToList = (listId: string) => {
     switchToList(listId);
+  };
+
+  const handleCreateReminder = async () => {
+    if (!reminderForm.itemName || !currentList) {
+      alert('Sisplau, emplena tots els camps');
+      return;
+    }
+
+    try {
+      await createReminder(
+        currentList.id,
+        reminderForm.itemName,
+        reminderForm.intervalWeeks,
+        new Date(),
+        selectedReminderSupermarket ? {
+          id: selectedReminderSupermarket.id,
+          name: selectedReminderSupermarket.name,
+          chain: selectedReminderSupermarket.chain
+        } : undefined
+      );
+      setShowReminderModal(false);
+      setReminderForm({ itemName: '', intervalWeeks: 2 });
+      setSelectedReminderSupermarket(null);
+      alert('Recordatori creat correctament!');
+    } catch (error) {
+      console.error('Error creant recordatori:', error);
+      alert('Error creant el recordatori');
+    }
   };
 
   // Si no està autenticat, no mostrar res
@@ -191,14 +229,83 @@ function Pendents() {
           <h3>📝 {currentList.name}</h3>
           <p>📍 {currentList.postalCode} • ID: {currentList.id}</p>
         </div>
-        <button 
-          className="btn-secondary change-list-btn"
-          onClick={() => switchToList('')} // Deseleccionar llista actual
-        >
-          Canviar Llista
-        </button>
+        <div className="list-actions">
+                      <button 
+             className="btn-reminder"
+             onClick={() => {
+               setReminderForm({ itemName: '', intervalWeeks: 2 });
+               setSelectedReminderSupermarket(null);
+               setShowReminderModal(true);
+             }}
+           >
+             ⏰ Crear Recordatori
+           </button>
+          <button 
+            className="btn-secondary change-list-btn"
+            onClick={() => switchToList('')} // Deseleccionar llista actual
+          >
+            Canviar Llista
+          </button>
+        </div>
       </div>
       <Container />
+
+      {/* Modal per crear recordatoris */}
+      {showReminderModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>⏰ Crear Recordatori</h3>
+            
+            <div className="form-group">
+              <label>Nom del producte:</label>
+              <input 
+                type="text"
+                value={reminderForm.itemName}
+                onChange={(e) => setReminderForm(prev => ({ ...prev, itemName: e.target.value }))}
+                placeholder="Ex: Llet, Pà, Fruita..."
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Recordar cada:</label>
+              <select 
+                value={reminderForm.intervalWeeks}
+                onChange={(e) => setReminderForm(prev => ({ ...prev, intervalWeeks: parseInt(e.target.value) }))}
+              >
+                <option value={1}>1 setmana</option>
+                <option value={2}>2 setmanes</option>
+                <option value={4}>1 mes</option>
+                <option value={8}>2 mesos</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Supermercat (opcional):</label>
+              <SupermarketSelector
+                postalCode={currentList?.postalCode}
+                selectedSupermarket={selectedReminderSupermarket}
+                onSupermarketSelect={setSelectedReminderSupermarket}
+                placeholder="🏪 Seleccionar supermercat per al recordatori"
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                className="btn-secondary"
+                onClick={() => setShowReminderModal(false)}
+              >
+                Cancel·lar
+              </button>
+              <button 
+                className="btn-primary"
+                onClick={handleCreateReminder}
+              >
+                Crear Recordatori
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

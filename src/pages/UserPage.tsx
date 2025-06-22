@@ -145,13 +145,6 @@ const UserPage: React.FC = () => {
                       {previewItems.map((item) => (
                         <div key={item.id} className="preview-item">
                           <span className="preview-item-name">{item.task}</span>
-                          {item.product?.image_url && (
-                            <img 
-                              src={item.product.image_url} 
-                              alt={item.product.name}
-                              className="preview-item-image"
-                            />
-                          )}
                         </div>
                       ))}
                       {pendingItemsInList.length > 2 && (

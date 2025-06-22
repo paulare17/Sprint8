@@ -34,7 +34,7 @@ const handleNavClick = (page: string) => {
     if (page === "Mapa") {
       navigate('/mapa')
     };
-    if (page === "Caledari") {
+    if (page === "Calendari") {
       navigate('/calendari')
     };
     if (page === "Llistes") {
