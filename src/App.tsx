@@ -3,7 +3,11 @@ import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import Pendents from './pages/Pendents';
 import UserPage from './pages/UserPage';
+import ListsPage from './pages/ListsPage';
+import RegisterPage from './pages/RegisterPage';
+import MapPage from './pages/MapPage';
 import FirebaseErrorHandler from './components/FirebaseErrorHandler';
+import { ShoppingListProvider } from './contexts/ShoppingListContext';
 import './App.css'
 import { BrowserRouter, Routes, Route }  from 'react-router-dom';
 
@@ -12,14 +16,18 @@ function App() {
 
   return (
     <BrowserRouter>
-      <FirebaseErrorHandler>
+      <FirebaseErrorHandler />
+      <ShoppingListProvider>
         <Navbar/>
         <Routes>
           <Route path="/" element={<HomePage/>}/>
           <Route path="/pendents" element={<Pendents/>}/>
           <Route path="/profile" element={<UserPage/>}/>
+          <Route path="/lists" element={<ListsPage/>}/>
+          <Route path="/register" element={<RegisterPage/>}/>
+          <Route path="/mapa" element={<MapPage/>}/>
         </Routes>
-      </FirebaseErrorHandler>
+      </ShoppingListProvider>
     </BrowserRouter>
   )
 }

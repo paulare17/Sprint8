@@ -5,8 +5,7 @@ import {
     updateProfile
   } from 'firebase/auth';
   import { doc, setDoc, getDoc } from 'firebase/firestore';
-  import type { DocumentSnapshot, DocumentData } from 'firebase/firestore';
-  import { auth, db, FIREBASE_ENABLED } from './firebaseConfig';
+  import { auth, db } from './firebaseConfig';
   
   export interface UserProfile {
     uid: string;
@@ -15,6 +14,8 @@ import {
     postalCode: string;
     listOption: 'new-list' | 'add-to-list';
     createdAt: Date;
+    currentListId?: string; // ID de la llista activa
+    joinedLists?: string[]; // IDs de les llistes a les quals pertany
   }
   
   class AuthService {
@@ -27,14 +28,18 @@ import {
       listOption: 'new-list' | 'add-to-list'
     ): Promise<UserProfile> {
       try {
+        console.log('🔥 Starting user registration...', { email, displayName });
+        
         // Crear usuari amb Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+        console.log('✅ User created in Auth:', user.uid);
   
         // Actualitzar perfil amb nom
         await updateProfile(user, {
           displayName: displayName
         });
+        console.log('✅ Profile updated with display name');
   
         // Crear perfil a Firestore
         const userProfile: UserProfile = {
@@ -45,97 +50,150 @@ import {
           listOption: listOption,
           createdAt: new Date()
         };
-  
-        await setDoc(doc(db, 'users', user.uid), userProfile);
+
+        try {
+          await setDoc(doc(db, 'users', user.uid), userProfile);
+          console.log('✅ User profile saved to Firestore');
+        } catch (firestoreError) {
+          console.warn('⚠️ Failed to save to Firestore, but user created in Auth:', firestoreError);
+          
+          // Si Firestore falla, continuar amb el perfil local
+          // L'usuari pot seguir utilitzant l'app amb les dades d'Auth
+        }
   
         return userProfile;
-      } catch (error: any) {
-        console.error('Error registering user:', error);
-        throw new Error(this.getErrorMessage(error.code));
+      } catch (error: unknown) {
+        console.error('❌ Error registering user:', error);
+        const firebaseError = error as { code?: string };
+        throw new Error(this.getErrorMessage(firebaseError.code || 'unknown'));
       }
     }
   
-      async loginUser(email: string, password: string): Promise<UserProfile> {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+    async loginUser(email: string, password: string): Promise<UserProfile> {
+      try {
+        console.log('🔥 Starting user login...', { email });
+        
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('✅ User authenticated:', user.uid);
 
-      // Obtenir perfil de Firestore amb retry logic
-      const userDoc = await this.getDocumentWithRetry('users', user.uid);
-      
-      if (!userDoc.exists()) {
-        throw new Error('Perfil d\'usuari no trobat');
-      }
+        // Intentar obtenir perfil de Firestore amb fallback
+        try {
+          const userDoc = await this.getDocumentWithRetry('users', user.uid);
+          
+          if (userDoc && userDoc.exists()) {
+            console.log('✅ User profile loaded from Firestore');
+            return userDoc.data() as UserProfile;
+          }
+        } catch (firestoreError) {
+          console.warn('⚠️ Failed to load from Firestore, using Auth data:', firestoreError);
+        }
 
-      return userDoc.data() as UserProfile;
-    } catch (error: any) {
-      console.error('Error logging in:', error);
-      
-      // Si és un error de connectivitat, proporcionar un fallback
-      if (this.isNetworkError(error)) {
-        throw new Error('Error de connexió. Comprova la teva connexió a internet i torna-ho a intentar.');
+        // Fallback: crear perfil temporal amb dades d'Auth
+        const fallbackProfile: UserProfile = {
+          uid: user.uid,
+          email: user.email!,
+          displayName: user.displayName || 'Usuari',
+          postalCode: '08001', // Valor per defecte
+          listOption: 'new-list',
+          createdAt: new Date()
+        };
+        
+        console.log('✅ Using fallback profile');
+        return fallbackProfile;
+        
+      } catch (error: unknown) {
+        console.error('❌ Error logging in:', error);
+        
+        // Si és un error de connectivitat, proporcionar un fallback
+        if (this.isNetworkError(error)) {
+          throw new Error('Error de connexió. Comprova la teva connexió a internet i torna-ho a intentar.');
+        }
+        
+        const firebaseError = error as { code?: string };
+        throw new Error(this.getErrorMessage(firebaseError.code || 'unknown'));
       }
-      
-      throw new Error(this.getErrorMessage(error.code));
     }
-  }
   
     async logoutUser(): Promise<void> {
       try {
         await signOut(auth);
+        console.log('✅ User logged out successfully');
       } catch (error) {
-        console.error('Error logging out:', error);
+        console.error('❌ Error logging out:', error);
         throw new Error('Error en tancar sessió');
       }
     }
   
-      async getCurrentUserProfile(): Promise<UserProfile | null> {
-    try {
-      const user = auth.currentUser;
-      if (!user) return null;
-
-      const userDoc = await this.getDocumentWithRetry('users', user.uid);
-      return userDoc.exists() ? userDoc.data() as UserProfile : null;
-    } catch (error) {
-      console.error('Error getting user profile:', error);
-      return null;
-    }
-  }
-
-  // Mètode helper per obtenir documents amb retry logic
-  private async getDocumentWithRetry(collection: string, docId: string, maxRetries: number = 3): Promise<any> {
-    for (let i = 0; i < maxRetries; i++) {
+    async getCurrentUserProfile(): Promise<UserProfile | null> {
       try {
-        const docRef = doc(db, collection, docId);
-        return await getDoc(docRef);
-      } catch (error: any) {
-        console.warn(`Intent ${i + 1} fallit per obtenir document:`, error.message);
-        
-        if (i === maxRetries - 1) {
-          throw error;
+        const user = auth.currentUser;
+        if (!user) return null;
+
+        try {
+          const userDoc = await this.getDocumentWithRetry('users', user.uid);
+          if (userDoc && userDoc.exists()) {
+            return userDoc.data() as UserProfile;
+          }
+        } catch {
+          console.warn('⚠️ Firestore unavailable, using Auth data');
         }
+
+        // Fallback amb dades d'Auth
+        return {
+          uid: user.uid,
+          email: user.email!,
+          displayName: user.displayName || 'Usuari',
+          postalCode: '08001',
+          listOption: 'new-list',
+          createdAt: new Date()
+        };
         
-        // Esperar abans del següent intent (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+      } catch (error) {
+        console.error('❌ Error getting user profile:', error);
+        return null;
       }
     }
-  }
 
-  // Mètode per detectar errors de xarxa
-  private isNetworkError(error: any): boolean {
-    const networkErrorCodes = [
-      'unavailable',
-      'deadline-exceeded',
-      'failed-precondition'
-    ];
-    
-    return (
-      error?.code && networkErrorCodes.includes(error.code) ||
-      error?.message?.includes('offline') ||
-      error?.message?.includes('network') ||
-      error?.message?.includes('Failed to get document because the client is offline')
-    );
-  }
+    // Mètode helper per obtenir documents amb retry logic
+    private async getDocumentWithRetry(collection: string, docId: string, maxRetries: number = 2) {
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const docRef = doc(db, collection, docId);
+          return await getDoc(docRef);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.warn(`⚠️ Firestore attempt ${i + 1} failed:`, errorMessage);
+          
+          if (i === maxRetries - 1) {
+            throw error;
+          }
+          
+          // Esperar abans del següent intent
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+      }
+    }
+
+    // Mètode per detectar errors de xarxa
+    private isNetworkError(error: unknown): boolean {
+      const networkErrorCodes = [
+        'unavailable',
+        'deadline-exceeded',
+        'failed-precondition',
+        'network-request-failed'
+      ];
+      
+      const firebaseError = error as { code?: string; message?: string };
+      
+      return Boolean(
+        (firebaseError?.code && networkErrorCodes.includes(firebaseError.code)) ||
+        (firebaseError?.message?.includes('offline')) ||
+        (firebaseError?.message?.includes('network')) ||
+        (firebaseError?.message?.includes('Failed to get document because the client is offline')) ||
+        (firebaseError?.message?.includes('400'))
+      );
+    }
   
     private getErrorMessage(errorCode: string): string {
       switch (errorCode) {
@@ -149,6 +207,8 @@ import {
           return 'Usuari no trobat';
         case 'auth/wrong-password':
           return 'Contrasenya incorrecta';
+        case 'auth/network-request-failed':
+          return 'Error de connexió. Comprova la teva connexió a internet';
         default:
           return 'Error d\'autenticació';
       }

@@ -1,73 +1,45 @@
-import React, { useState } from 'react';
-import FormUser from '../components/FormUser';
-import LoginForm from '../components/LoginForm';
-import FAQs from '../components/FAQs';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Container from '../components/todolist/Container';
 import { useAuth } from '../contexts/AuthContext';
 
 function HomePage() {
-  const { currentUser, userProfile, logout } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
-
-  const handleUserRegistered = (postalCode: string) => {
-    console.log('Usuari registrat amb codi postal:', postalCode);
-  };
-
-  const handlePostalCodeChange = (postalCode: string) => {
-    console.log('Codi postal canviat:', postalCode);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  };
+  const { currentUser, userProfile } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <>
-      {/* Header section */}
-      <section className='inicia-section'>
-        {currentUser ? (
-          <button className='inicia-button' onClick={handleLogout}>
-            Tancar sessió
-          </button>
-        ) : (
-          <button className='inicia-button' onClick={() => setShowLogin(!showLogin)}>
-            {showLogin ? 'Vull registrar-me' : 'Ja tinc compte'}
-          </button>
-        )}
-      </section>
-
-      {/* Image preview */}
-      <div className='img-preview'>
-        <img src="src/assets/imagetemporal.png" alt="Vista prèvia" />
-      </div>
-
       {/* Conditional rendering based on user state */}
       {!currentUser ? (
         <>
-          {/* Show login or registration form */}
-          {showLogin ? (
-            <LoginForm onSwitchToRegister={() => setShowLogin(false)} />
-          ) : (
-            <FormUser 
-              onUserRegistered={handleUserRegistered}
-              onPostalCodeChange={handlePostalCodeChange}
-              onSwitchToLogin={() => setShowLogin(true)}
-            />
-          )}
-          <FAQs />
+          {/* Benvinguda per usuaris no autenticats */}
+          <section className='inicia-section'>
+            <button 
+              className='inicia-button' 
+              onClick={() => navigate('/register')}
+            >
+              Comença aquí - Registra't
+            </button>
+          </section>
+
+          <div className='img-preview'>
+            <img src="src/assets/imagetemporal.png" alt="Vista prèvia" />
+          </div>
+
+          <div className="welcome-message">
+            <h2>Benvingut a Inprocode Shopping</h2>
+            <p>La teva aplicació per gestionar llistes de compra compartides</p>
+            <p>Registra't per començar a crear i compartir les teves llistes!</p>
+          </div>
         </>
       ) : (
         <>
-          {/* Show todo list if logged in */}
+          {/* Mostrar llista de ToDo si està connectat */}
           <div className="user-info">
             <h2>Benvingut, {userProfile?.displayName}!</h2>
             <p>📍 Zona: {userProfile?.postalCode}</p>
           </div>
-          <Container userPostalCode={userProfile?.postalCode} />
+          <Container />
         </>
       )}
     </>

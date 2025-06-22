@@ -1,21 +1,36 @@
-export interface Product {
+import type { Supermarket } from '../services/supermarketService';
+
+export interface ToDoItem {
+  id: string;
+  task: string;
+  done: boolean;
+  supermarket?: {
     id: string;
     name: string;
-    brands?: string;
-    image_url?: string;
-    nutriscore_grade?: string;
-    nova_group?: number;
-    categories?: string;
-    stores?: string;
-  }
-  
-  export interface ToDoItem {
+    chain?: string;
+  }; // Informació bàsica del supermercat seleccionat
+  addedBy?: string; // Email de l'usuari que va afegir l'item
+  addedAt?: Date;
+}
+
+  export interface ShoppingList {
     id: string;
-    task: string;
-    done: boolean;
-    product?: Product;
-    supermarket?: {
-      name: string;
-      coordinates: [number, number];
-    };
+    name: string;
+    postalCode: string;
+    createdBy: string; // Email de l'usuari creador
+    createdAt: Date;
+    items: ToDoItem[];
+    members: string[]; // Emails dels usuaris que tenen accés
+    isActive: boolean;
+  }
+
+  export interface UserProfile {
+    uid: string;
+    email: string;
+    displayName: string;
+    postalCode: string;
+    listOption: 'new-list' | 'add-to-list';
+    createdAt: Date;
+    currentListId?: string; // ID de la llista activa
+    joinedLists?: string[]; // IDs de les llistes a les quals pertany
   }

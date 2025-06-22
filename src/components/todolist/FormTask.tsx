@@ -1,81 +1,100 @@
 import React, { useState, useEffect } from "react";
-import type { ToDoItem, Product } from "../types";
-import { openFoodService } from "../../services/openFoodService";
-import SupermarketSelector from "./SupermarketSelector";
+import type { ToDoItem } from "../types";
 import type { Supermarket } from "../../services/supermarketService";
-import { useAuth } from "../../contexts/AuthContext";
+import { supermarketService } from "../../services/supermarketService";
+import { useShoppingList } from "../../contexts/ShoppingListContext";
 
 interface ToDoListProps {
-  handleAddItem: (item: ToDoItem) => void;
+  handleAddItem: (item: Omit<ToDoItem, 'id' | 'addedBy' | 'addedAt'>) => void;
 }
 
 const FormTask: React.FC<ToDoListProps> = ({ handleAddItem }) => {
-  const { userProfile } = useAuth();
+  const { currentList } = useShoppingList();
   const [task, setTask] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [supermarkets, setSupermarkets] = useState<Supermarket[]>([]);
   const [selectedSupermarket, setSelectedSupermarket] = useState<Supermarket | null>(null);
+  const [showSupermarketDropdown, setShowSupermarketDropdown] = useState(false);
+  const [isLoadingSupermarkets, setIsLoadingSupermarkets] = useState(false);
 
-  // Utilitzar el codi postal de l'usuari autenticat
-  const userPostalCode = userProfile?.postalCode;
-
-  //cerca productes
+  // Carregar supermercats de la zona quan hi ha una llista
   useEffect(() => {
-    const searchProducts = async () => {
-      if (task.length < 2) {
-        setProducts([]);
-        setShowDropdown(false);
+    const loadSupermarkets = async () => {
+      if (!currentList?.postalCode) {
+        console.log('🔍 No hi ha codi postal a la llista actual');
+        setSupermarkets([]);
         return;
       }
 
-      setIsLoading(true);
+      console.log(`🔍 Carregant supermercats per codi postal: ${currentList.postalCode}`);
+      setIsLoadingSupermarkets(true);
       try {
-        const results = await openFoodService.searchProducts(task, 5);
-        setProducts(results);
-        setShowDropdown(true);
+        const results = await supermarketService.getAllNearbySupermarkets(currentList.postalCode);
+        console.log(`✅ Supermercats carregats: ${results.length}`);
+        setSupermarkets(results);
       } catch (error) {
-        console.error("Error searching products:", error);
-        setProducts([]);
+        console.error("❌ Error loading supermarkets:", error);
+        setSupermarkets([]);
       } finally {
-        setIsLoading(false);
+        setIsLoadingSupermarkets(false);
       }
     };
 
-    const timeoutId = setTimeout(searchProducts, 300);
-    return () => clearTimeout(timeoutId);
-  }, [task]);
+    loadSupermarkets();
+  }, [currentList?.postalCode]);
+
+  // Debug rendering
+  console.log('🔄 FormTask render:', {
+    currentListPostalCode: currentList?.postalCode,
+    supermarketsCount: supermarkets.length,
+    isLoading: isLoadingSupermarkets,
+    showDropdown: showSupermarketDropdown,
+    selectedSupermarket: selectedSupermarket?.name,
+    geoapifyKey: import.meta.env.VITE_GEOAPIFY_API_KEY ? 'Configured' : 'Missing'
+  });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!task) return;
+    if (!task.trim()) return;
 
     handleAddItem({
       done: false,
-      id: (+new Date()).toString(),
-      task,
-      product: selectedProduct || undefined,
+      task: task.trim(),
       supermarket: selectedSupermarket ? {
+        id: selectedSupermarket.id,
         name: selectedSupermarket.name,
-        coordinates: selectedSupermarket.coordinates
+        chain: selectedSupermarket.chain
       } : undefined
     });
+    
     setTask("");
-    setSelectedProduct(null);
-    setShowDropdown(false);
-  };
-
-  const handleProductSelect = (product: Product) => {
-    setTask(product.name);
-    setSelectedProduct(product);
-    setShowDropdown(false);
+    setSelectedSupermarket(null);
+    setShowSupermarketDropdown(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTask(e.target.value);
-    setSelectedProduct(null);
   };
+
+  const handleSupermarketSelect = (supermarket: Supermarket) => {
+    console.log('🏪 Supermercat seleccionat:', supermarket.name);
+    setSelectedSupermarket(supermarket);
+    setShowSupermarketDropdown(false);
+  };
+
+  const toggleSupermarketDropdown = () => {
+    console.log('📋 Toggle dropdown:', !showSupermarketDropdown);
+    setShowSupermarketDropdown(!showSupermarketDropdown);
+  };
+
+  if (!currentList) {
+    return (
+      <div className="form-container">
+        <div className="no-list-message">
+          Selecciona una llista per afegir productes
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="form-container">
@@ -85,54 +104,115 @@ const FormTask: React.FC<ToDoListProps> = ({ handleAddItem }) => {
             type="text"
             className="to-do-input"
             value={task}
-            placeholder="Cerca producte..."
+            placeholder="Escriu el nom del producte..."
             onChange={handleInputChange}
-            onFocus={() => task.length >= 2 && setShowDropdown(true)}
-            onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
           />
-          
-          {showDropdown && (
-            <div className="product-dropdown">
-              {isLoading ? (
-                <div className="product-item loading">Buscant...</div>
-              ) : products.length > 0 ? (
-                products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="product-item"
-                    onMouseDown={() => handleProductSelect(product)}
+        </div>
+        
+        {/* Selector de supermercat */}
+        <div className="supermarket-selector" style={{ position: 'relative', display: 'block' }}>
+          <button
+            type="button"
+            className="supermarket-toggle-button"
+            onClick={toggleSupermarketDropdown}
+            style={{ padding: '10px', border: '1px solid #ccc', background: 'white', cursor: 'pointer' }}
+          >
+            {selectedSupermarket 
+              ? `🏪 ${selectedSupermarket.name}` 
+              : isLoadingSupermarkets 
+                ? '⏳ Carregant supermercats...'
+                : supermarkets.length > 0
+                  ? '🏪 Seleccionar supermercat (opcional)'
+                  : '🚫 No hi ha supermercats disponibles'
+            }
+            <span className="dropdown-arrow">▼</span>
+          </button>
+            
+          {showSupermarketDropdown && (
+            <div 
+              className="supermarket-dropdown" 
+              style={{ 
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                border: '1px solid #ccc', 
+                background: 'white', 
+                maxHeight: '200px', 
+                overflow: 'auto',
+                zIndex: 1000,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}
+            >
+              {isLoadingSupermarkets ? (
+                <div className="supermarket-item loading" style={{ padding: '10px' }}>Carregant supermercats...</div>
+              ) : (
+                <>
+                  <div 
+                    className="supermarket-item clear-selection"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('🚫 Netejant selecció de supermercat');
+                      setSelectedSupermarket(null);
+                      setShowSupermarketDropdown(false);
+                    }}
+                    onMouseEnter={() => console.log('🔄 Hover on clear selection')}
+                    style={{ 
+                      padding: '10px', 
+                      cursor: 'pointer', 
+                      borderBottom: '1px solid #eee',
+                      userSelect: 'none',
+                      backgroundColor: '#f8f9fa'
+                    }}
                   >
-                    <div className="product-info">
-                      {product.image_url && (
-                        <img src={product.image_url} alt={product.name} className="product-image" />
-                      )}
-                      <div className="product-details">
-                        <div className="product-name">{product.name}</div>
-                        {product.brands && (
-                          <div className="product-brand">{product.brands}</div>
-                        )}
+                    <span>🚫 Sense supermercat específic</span>
+                  </div>
+                  {supermarkets.map((supermarket) => {
+                    console.log('🏪 Rendering supermarket item:', supermarket.name);
+                    return (
+                    <div
+                      key={supermarket.id}
+                      className="supermarket-item"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        console.log('🏪 Clicked supermarket:', supermarket.name);
+                        handleSupermarketSelect(supermarket);
+                      }}
+                      style={{ 
+                        padding: '10px', 
+                        cursor: 'pointer', 
+                        borderBottom: '1px solid #eee',
+                        userSelect: 'none'
+                      }}
+                    >
+                      <div className="supermarket-info">
+                        <div className="supermarket-name">
+                          🏪 {supermarket.name}
+                        </div>
+                                                  <div className="supermarket-details">
+                            {supermarket.chain && <span className="chain">({supermarket.chain})</span>}
+                            <span className="distance">{supermarket.distance}m</span>
+                          </div>
+                        <div className="supermarket-address">
+                          📍 {supermarket.address}
+                        </div>
                       </div>
                     </div>
-                    {product.nutriscore_grade && (
-                      <div className={`nutriscore grade-${product.nutriscore_grade.toLowerCase()}`}>
-                        {product.nutriscore_grade.toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : task.length >= 2 ? (
-                <div className="product-item no-results">No s'han trobat productes</div>
-              ) : null}
+                    );
+                  })}
+                </>
+              )}
             </div>
           )}
         </div>
-            
+        
         <button
           type="submit"
           className="add-button"
-          disabled={!task}
+          disabled={!task.trim()}
         >
-          +
+          ➕ Afegir
         </button>
       </form>
     </div>
