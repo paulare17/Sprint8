@@ -1,5 +1,6 @@
 import React, {Fragment} from 'react'
 import type { ToDoItem } from '../types';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 interface CheckProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -48,7 +49,7 @@ const Check: React.FC<CheckProps> = ({onChange, data, onDelete}) => {
           onClick={handleDelete}
           title="Eliminar producte"
         >
-          🗑️
+        <DeleteForeverIcon/>
         </button>
       )}
     </label>

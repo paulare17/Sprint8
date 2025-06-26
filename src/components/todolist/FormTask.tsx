@@ -84,9 +84,9 @@ const FormTask: React.FC<ToDoListProps> = ({ handleAddItem }) => {
           postalCode={currentList?.postalCode}
           selectedSupermarket={selectedSupermarket}
           onSupermarketSelect={handleSupermarketSelect}
-          placeholder="🏪 Seleccionar supermercat (opcional)"
-        />
-        
+          placeholder="🏪 Seleccionar supermercat"
+          />
+         
         <button
           type="submit"
           className="add-button"

@@ -141,7 +141,7 @@ class SupermarketService {
       
       console.log(`🧹 Després d'eliminar duplicats: ${uniqueSupermarkets.length} supermercats únics`);
       
-      const finalResults = uniqueSupermarkets.slice(0, 15); // Limitar a 15 resultats
+      const finalResults = uniqueSupermarkets.slice(0, 30); // Limitar a 15 resultats
       console.log(`📋 Resultat final: ${finalResults.length} supermercats per retornar`);
       
       return finalResults;

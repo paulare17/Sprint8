@@ -13,7 +13,6 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import { useShoppingList } from '../contexts/ShoppingListContext';
 import type { ToDoItem, ShoppingList } from './types';
 
-// Registrar los componentes de Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,

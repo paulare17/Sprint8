@@ -6,31 +6,58 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --primary-color: #a3ef71;
-  --secondary-color: #eb71f0;
+  
+  /* 🎨 Nova paleta de colors */
+  --color-slate: #b3b8bb;      /* Gris blavós suau */
+  --color-rose: #e4c9ce;       /* Rosa pàl·lid */
+  --color-teal: #68bbc3;       /* Verd-blau aqua */
+  --color-terracotta: #ce9e92; /* Terracota suau */
+  --color-peach: #f9bca8;      /* Préssec clar */
+  
+  /* Variables principals actualitzades */
+  --primary-color: var(--color-teal);
+  --secondary-color: var(--color-rose);
 }
 
+html {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
 body {
   margin: 0;
-  margin-top: 80px;
   padding: 0;
+  padding-top: 80px;        /* 👈 Canviat de margin-top a padding-top */
   min-width: 320px;
-  min-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  
+  min-height: 100vh;        /* 👈 Assegurar altura mínima completa */
+  height: auto;             /* 👈 Permetre altura automàtica */
+  overflow-y: auto;         /* 👈 Permetre scroll vertical */
+  overflow-x: hidden;       /* 👈 Amagar scroll horitzontal */
+  background-color: #ffffff;
 }
+
 
 #root {
   width: 100%;
   margin: 0 auto;
   padding: 2rem;
+  padding-bottom: 4rem;     /* 👈 Afegir padding extra al final */
   text-align: center;
   box-sizing: border-box;
-  min-height: 100%;
-  position: relative; /* Afegim position relative */
-  height: auto;  
+  min-height: calc(100vh - 80px); /* 👈 Altura mínima menys navbar */
+  height: auto;             /* 👈 Altura automàtica */
+  position: relative;
+}
+
+/* 🔧 Assegurar que tots els containers principals tinguin scroll */
+.calendar-page,
+.analytics-page,
+.user-page,
+.todo-container {
+  min-height: auto;
+  height: auto;
+  overflow: visible;
 }
 
 h1 {
@@ -57,7 +84,7 @@ button {
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--color-slate);
 }
 button:focus,
 button:focus-visible {
@@ -69,6 +96,7 @@ button:focus-visible {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  padding-bottom: 40px;     /* 👈 Espai extra al final */
 }
 
 .analytics-summary {
@@ -79,7 +107,7 @@ button:focus-visible {
 }
 
 .stat-card {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(135deg, var(--color-teal), var(--color-peach));
   padding: 20px;
   border-radius: 12px;
   text-align: center;
@@ -122,7 +150,7 @@ button:focus-visible {
   margin: 0 0 20px 0;
   color: #333;
   text-align: center;
-  border-bottom: 2px solid var(--primary-color);
+  border-bottom: 2px solid var(--color-terracotta);
   padding-bottom: 10px;
 }
 
@@ -155,7 +183,7 @@ button:focus-visible {
 }
 
 .toggle-analytics-button {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(135deg, var(--color-teal), var(--color-rose));
   color: white;
   border: none;
   padding: 10px 20px;
@@ -174,13 +202,14 @@ button:focus-visible {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
+  padding-bottom: 40px;     /* 👈 Espai extra al final */
 }
 
 .analytics-page-header {
   text-align: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 3px solid var(--primary-color);
+  border-bottom: 3px solid var(--color-terracotta);
 }
 
 .analytics-page-header h1 {
@@ -189,7 +218,7 @@ button:focus-visible {
 }
 
 .current-list-badge {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(135deg, var(--color-teal), var(--color-peach));
   color: white;
   padding: 10px 20px;
   border-radius: 25px;
@@ -229,9 +258,9 @@ button:focus-visible {
 }
 
 .list-card:hover {
-  border-color: var(--primary-color);
+  border-color: var(--color-teal);
   transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(163, 239, 113, 0.3);
+  box-shadow: 0 6px 20px rgba(104, 187, 195, 0.3);
 }
 
 .list-card h5 {
@@ -250,7 +279,7 @@ button:focus-visible {
   display: block;
   margin-top: 15px;
   font-size: 12px;
-  color: var(--secondary-color);
+  color: var(--color-terracotta);
   font-weight: bold;
 }
 
@@ -264,7 +293,7 @@ button:focus-visible {
 }
 
 .back-to-list-button, .change-list-button, .create-list-button, .login-button {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(135deg, var(--color-rose), var(--color-peach));
   color: white;
   border: none;
   padding: 12px 24px;
@@ -301,4 +330,42 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* 📱 Containers de pàgines principals */
+.analytics-page,
+.calendar-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 40px;     /* 👈 Espai extra al final */
+  min-height: auto;
+}
+
+/* 📊 Container dels gràfics */
+.analytics-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 40px;     /* 👈 Espai extra al final */
+}
+
+/* 📋 Todo container */
+.todo-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 40px;     /* 👈 Espai extra al final */
+}
+
+/* 🔧 Eliminar restriccions d'altura en modals i dropdowns */
+.modal-overlay {
+  overflow-y: auto;         /* 👈 Permetre scroll en modals */
+}
+
+.modal-content {
+  max-height: 90vh;         /* 👈 Màxim 90% de l'altura de pantalla */
+  overflow-y: auto;         /* 👈 Scroll intern si cal */
+  margin: 20px;             /* 👈 Marge per evitar tocar els bordes */
 }

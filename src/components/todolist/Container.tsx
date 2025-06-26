@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom';
 import FormTask from "./FormTask";
 import TaskList from "./TaskList";
 import { useShoppingList } from '../../contexts/ShoppingListContext';
@@ -6,6 +7,7 @@ import type { ToDoItem } from '../types';
 
 const Container: React.FC = () => {
   const { currentList, addItemToCurrentList } = useShoppingList();
+  const navigate = useNavigate();
 
   const handleAddItem = (addItem: Omit<ToDoItem, 'id' | 'addedBy' | 'addedAt'>) => {
     addItemToCurrentList(addItem);
@@ -17,6 +19,7 @@ const Container: React.FC = () => {
         <div className="no-list-selected">
           <h3>No hi ha cap llista seleccionada</h3>
           <p>Selecciona una llista per començar a afegir productes.</p>
+          <button className='action-button' onClick={()=>navigate('/lists')}>Selecciona una llista</button>
         </div>
       </div>
     );

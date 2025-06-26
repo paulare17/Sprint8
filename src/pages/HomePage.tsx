@@ -37,7 +37,6 @@ function HomePage() {
           {/* Mostrar llista de ToDo si està connectat */}
           <div className="user-info">
             <h2>Benvingut, {userProfile?.displayName}!</h2>
-            <p>📍 Zona: {userProfile?.postalCode}</p>
           </div>
           <Container />
         </>

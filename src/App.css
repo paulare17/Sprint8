@@ -17,6 +17,11 @@
 
 .navbar-menu {
   font-size: 20px !important;
+  color: var(--secondary-color) !important;
+}
+
+.navbar-menu:hover {
+  color: white !important;
 }
 
 .inicia-section {
@@ -109,13 +114,18 @@ fieldset {
   max-width: 500px;
   margin: 0 auto;
   padding: 20px;
+  justify-content: center;
 }
 
 .todo-form {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .form-container {
@@ -131,19 +141,25 @@ fieldset {
 
 .to-do-input {
   padding: 8px;
-  margin-right: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 16px;
-  flex-shrink: 0;    /* No se encogerá aunque falte espacio */
-  flex-grow: 0;      /* No crecerá aunque sobre espacio */
-  width: 200px;      /* Ancho fijo (ajusta según prefieras) */
+  /* flex-shrink: 0;    No se encogerá aunque falte espacio */
+  /* flex-grow: 0;      No crecerá aunque sobre espacio */
+  width: 225px;      /* Ancho fijo (ajusta según prefieras) */
   min-width: 150px;
 }
 
 .todo-list {
   margin-top: 20px;
 }
+/* 
+.supermarket-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center !important;
+} */
 
 
 /* canvia el text sense haver d'usar lògica, s'activa quan es marca el checbox ( i aquest aplica checked)*/
@@ -351,7 +367,7 @@ fieldset {
   font-style: italic;
 }
 
-/* ============ QUICK ACTIONS ============ */
+
 .quick-actions {
   background: #f8f9fa;
   border-radius: 12px;
@@ -2651,6 +2667,10 @@ fieldset {
 
 .no-list-selected {
   text-align: center;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
   padding: 40px 20px;
   background: #f8f9fa;
   border-radius: 12px;

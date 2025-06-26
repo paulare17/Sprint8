@@ -73,7 +73,6 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         // Listener en temps real
         unsubscribe = onSnapshot(listsQuery, 
           (snapshot) => {
-            console.log('📋 Firestore update received, processing lists...');
             const lists: ShoppingList[] = [];
             
             snapshot.forEach((doc) => {
@@ -415,7 +414,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
           console.log(`✅ Item ${updatedItem.done ? 'marked as completed' : 'unmarked'} in Firestore`);
         }
       } catch (error) {
-        console.error('❌ Error syncing toggle to Firestore:', error);
+        console.error('❌ Error Firestore:', error);
         // Guardar localment com a fallback
         saveListsToStorage([updatedList]);
         console.log('⚠️ Toggle saved locally as fallback');
