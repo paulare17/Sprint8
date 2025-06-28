@@ -8,13 +8,15 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   query, 
   where, 
   onSnapshot, 
   arrayUnion,
+  arrayRemove,
   Timestamp
 } from 'firebase/firestore';
-import { db } from '../services/firebaseConfig';
+import { db, FIREBASE_ENABLED } from '../services/firebaseConfig';
 
 interface ShoppingListContextType {
   currentList: ShoppingList | null;
@@ -27,7 +29,8 @@ interface ShoppingListContextType {
   toggleItemInCurrentList: (itemId: string) => void;
   deleteItemFromCurrentList: (itemId: string) => void;
   updateCurrentList: (updates: Partial<ShoppingList>) => void;
-  leaveList: (listId: string) => void;
+  leaveList: (listId: string) => Promise<void>;
+  deleteList: (listId: string) => Promise<boolean>;
   generateListId: () => string;
 }
 
@@ -55,6 +58,8 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
     if (!currentUser || !userProfile) {
       setUserLists([]);
       setCurrentList(null);
+      // Netejar la llista seleccionada del localStorage quan no hi ha usuari
+      localStorage.removeItem('selectedListId');
       return;
     }
 
@@ -93,12 +98,25 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
             console.log(`✅ Loaded ${lists.length} lists from Firestore`);
             setUserLists(lists);
 
-            // Mantenir la llista activa si encara existeix (usar callback per evitar dependència)
+            // Restaurar la llista seleccionada si existeix al localStorage
+            const savedSelectedListId = localStorage.getItem('selectedListId');
+            
+            // Mantenir la llista activa si encara existeix
             setCurrentList(prevCurrentList => {
               if (prevCurrentList) {
                 const updatedCurrentList = lists.find(list => list.id === prevCurrentList.id);
                 return updatedCurrentList || null;
               }
+              
+              // Si no hi ha llista seleccionada però hi ha una guardada al localStorage, restaurar-la
+              if (savedSelectedListId) {
+                const savedList = lists.find(list => list.id === savedSelectedListId);
+                if (savedList) {
+                  console.log(`🔄 Restaurant llista seleccionada: ${savedList.name}`);
+                  return savedList;
+                }
+              }
+              
               return prevCurrentList;
             });
           },
@@ -126,6 +144,16 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         );
         
         setUserLists(userAccessibleLists);
+        
+        // Restaurar la llista seleccionada si existeix al localStorage
+        const savedSelectedListId = localStorage.getItem('selectedListId');
+        if (savedSelectedListId) {
+          const savedList = userAccessibleLists.find(list => list.id === savedSelectedListId);
+          if (savedList) {
+            console.log(`🔄 Restaurant llista seleccionada (localStorage): ${savedList.name}`);
+            setCurrentList(savedList);
+          }
+        }
       } catch (error) {
         console.error('Error loading from localStorage:', error);
         setUserLists([]);
@@ -200,6 +228,9 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
       };
       
       setCurrentList(newList);
+      // Guardar la nova llista com a seleccionada al localStorage
+      localStorage.setItem('selectedListId', listId);
+      console.log(`💾 Nova llista creada i seleccionada: ${newList.name} (${listId})`);
       
       return listId;
     } catch (error) {
@@ -223,6 +254,9 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         setCurrentList(newList);
         
         saveListsToStorage([newList]);
+        
+        // Guardar la nova llista com a seleccionada al localStorage
+        localStorage.setItem('selectedListId', newList.id);
         
         console.log('⚠️ List created in localStorage as fallback');
         return newList.id;
@@ -310,12 +344,16 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
     if (!listId) {
       // Si es passa cadena buida, deseleccionar la llista actual
       setCurrentList(null);
+      localStorage.removeItem('selectedListId');
       return;
     }
     
     const list = userLists.find(l => l.id === listId);
     if (list) {
       setCurrentList(list);
+      // Guardar l'ID de la llista seleccionada al localStorage
+      localStorage.setItem('selectedListId', listId);
+      console.log(`💾 Llista seleccionada guardada: ${list.name} (${listId})`);
     }
   };
 
@@ -459,17 +497,32 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
   };
 
   // Sortir d'una llista
-  const leaveList = (listId: string) => {
+  const leaveList = async (listId: string) => {
     if (!userProfile) return;
 
+    try {
+      // Actualitzar a Firestore si està disponible
+      if (FIREBASE_ENABLED) {
+        const listRef = doc(db, 'shoppingLists', listId);
+        await updateDoc(listRef, {
+          members: arrayRemove(userProfile.email)
+        });
+        console.log('✅ User removed from list in Firestore');
+      }
+    } catch (error) {
+      console.error('❌ Error leaving list in Firestore:', error);
+    }
+
+    // Actualitzar estat local
     const updatedLists = userLists.filter(list => list.id !== listId);
     setUserLists(updatedLists);
 
     if (currentList?.id === listId) {
       setCurrentList(null);
+      localStorage.removeItem('selectedListId');
     }
 
-    // Actualitzar la llista al localStorage per eliminar l'usuari dels membres
+    // Fallback localStorage
     try {
       const savedLists = localStorage.getItem('shoppingLists');
       const allLists: ShoppingList[] = savedLists ? JSON.parse(savedLists) : [];
@@ -486,6 +539,62 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
     }
   };
 
+  // 🗑️ Eliminar llista completament (només el creador)
+  const deleteList = async (listId: string): Promise<boolean> => {
+    if (!userProfile) {
+      throw new Error('No hi ha usuari autenticat');
+    }
+
+    const listToDelete = userLists.find(list => list.id === listId);
+    if (!listToDelete) {
+      throw new Error('Llista no trobada');
+    }
+
+    // Verificar que l'usuari és el creador
+    if (listToDelete.createdBy !== userProfile.email) {
+      throw new Error('Només el creador pot eliminar la llista');
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Eliminar de Firestore si està disponible
+      if (FIREBASE_ENABLED) {
+        const listRef = doc(db, 'shoppingLists', listId);
+        await deleteDoc(listRef);
+        console.log('✅ List deleted from Firestore');
+      }
+
+      // Actualitzar estat local
+      const updatedLists = userLists.filter(list => list.id !== listId);
+      setUserLists(updatedLists);
+
+      if (currentList?.id === listId) {
+        setCurrentList(null);
+        localStorage.removeItem('selectedListId');
+      }
+
+      // Eliminar de localStorage
+      try {
+        const savedLists = localStorage.getItem('shoppingLists');
+        const allLists: ShoppingList[] = savedLists ? JSON.parse(savedLists) : [];
+        const filteredLists = allLists.filter(list => list.id !== listId);
+        localStorage.setItem('shoppingLists', JSON.stringify(filteredLists));
+      } catch (localError) {
+        console.warn('Error removing from localStorage:', localError);
+      }
+
+      console.log(`✅ Llista "${listToDelete.name}" eliminada correctament`);
+      return true;
+
+    } catch (error) {
+      console.error('❌ Error deleting list:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const contextValue: ShoppingListContextType = {
     currentList,
     userLists,
@@ -498,6 +607,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
     deleteItemFromCurrentList,
     updateCurrentList,
     leaveList,
+    deleteList,
     generateListId
   };
 

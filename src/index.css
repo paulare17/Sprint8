@@ -7,16 +7,66 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   
-  /* 🎨 Nova paleta de colors */
-  --color-slate: #b3b8bb;      /* Gris blavós suau */
-  --color-rose: #e4c9ce;       /* Rosa pàl·lid */
-  --color-teal: #68bbc3;       /* Verd-blau aqua */
-  --color-terracotta: #ce9e92; /* Terracota suau */
-  --color-peach: #f9bca8;      /* Préssec clar */
+  /* 🎨 Nova paleta de colors actualitzada */
+  --color-orange: #ff5800;     /* Taronja vibrante */
+  --color-yellow: #ffd900;     /* Groc brillant */
+  --color-blue: #076bb6;       /* Blau */
+  --color-light: #fafafc;      /* Blanc/gris clar */
+  --color-slate: #8a8e91;      /* Gris neutre */
   
-  /* Variables principals actualitzades */
-  --primary-color: var(--color-teal);
-  --secondary-color: var(--color-rose);
+  /* Variables principals amb bon contrast */
+  --primary-color: var(--color-blue);      /* Blau principal */
+  --secondary-color: var(--color-orange);  /* Taronja secundari */
+  --accent-color: var(--color-yellow);     /* Groc per accents */
+  --background-light: var(--color-light);
+
+  /* 🎨 Variables per colors comuns */
+  --color-text-dark: #333;        /* Text gris fosc */
+  --color-text-medium: #666;      /* Text gris mig */
+  --color-text-light: #999;       /* Text gris clar */
+  --color-text-muted: #6c757d;    /* Text apagat */
+  --color-white: #ffffff;          /* Blanc */
+  --color-black: #000000;          /* Negre */
+  
+  /* Variables per backgrounds */
+  --color-bg-light: #f8f9fa;      /* Fons gris clar */
+  --color-bg-lighter: #f9f9f9;    /* Fons gris molt clar */
+  
+  /* Variables per borders */
+  --color-border-light: #e9ecef;  /* Border gris clar */
+  --color-border-medium: #ddd;    /* Border gris mig */
+  --color-border-dark: #dee2e6;   /* Border gris fosc */
+  
+  /* Variables per estats (success, warning, danger) */
+  --color-success: #28a745;       /* Verd èxit */
+  --color-success-dark: #155724;  /* Verd fosc */
+  --color-success-bg: #d4edda;    /* Fons verd clar */
+  --color-success-bg-light: #e8f5e8; /* Fons verd molt clar */
+  
+  --color-warning: #ffc107;       /* Groc advertència */
+  --color-warning-dark: #f59e0b;  /* Groc fosc */
+  --color-warning-bg: #fff3e0;    /* Fons groc clar */
+  
+  --color-danger: #dc3545;        /* Vermell perill */
+  --color-danger-dark: #c82333;   /* Vermell fosc */
+  --color-danger-bg: #ffe6e6;     /* Fons vermell clar */
+  
+  /* Variables per accions */
+  --color-info: #007bff;          /* Blau informació */
+  --color-info-dark: #0056b3;     /* Blau fosc */
+  --color-info-bg: #e6f3ff;       /* Fons blau clar */
+  --color-info-bg-light: #e3f2fd; /* Fons blau molt clar */
+  
+  /* Variables per grises del sistema */
+  --color-gray-100: #f8f9fa;
+  --color-gray-200: #e9ecef;
+  --color-gray-300: #dee2e6;
+  --color-gray-400: #ced4da;
+  --color-gray-500: #6c757d;
+  --color-gray-600: #495057;
+  --color-gray-700: #343a40;
+  --color-gray-800: #212529;
+  --color-gray-900: #2c3e50;
 }
 
 html {
@@ -28,13 +78,13 @@ html {
 body {
   margin: 0;
   padding: 0;
-  padding-top: 80px;        /* 👈 Canviat de margin-top a padding-top */
+  padding-top: 80px;
   min-width: 320px;
-  min-height: 100vh;        /* 👈 Assegurar altura mínima completa */
-  height: auto;             /* 👈 Permetre altura automàtica */
-  overflow-y: auto;         /* 👈 Permetre scroll vertical */
-  overflow-x: hidden;       /* 👈 Amagar scroll horitzontal */
-  background-color: #ffffff;
+  min-height: 100vh;
+  height: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: var(--background-light);
 }
 
 
@@ -107,7 +157,7 @@ button:focus-visible {
 }
 
 .stat-card {
-  background: linear-gradient(135deg, var(--color-teal), var(--color-peach));
+  background: linear-gradient(135deg, var(--color-blue), var(--color-orange));
   padding: 20px;
   border-radius: 12px;
   text-align: center;
@@ -140,7 +190,7 @@ button:focus-visible {
 }
 
 .chart-section {
-  background: white;
+  background: var(--color-white);
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -148,9 +198,9 @@ button:focus-visible {
 
 .chart-section h4 {
   margin: 0 0 20px 0;
-  color: #333;
+  color: var(--color-text-dark);
   text-align: center;
-  border-bottom: 2px solid var(--color-terracotta);
+  border-bottom: 2px solid var(--color-orange);
   padding-bottom: 10px;
 }
 
@@ -183,8 +233,8 @@ button:focus-visible {
 }
 
 .toggle-analytics-button {
-  background: linear-gradient(135deg, var(--color-teal), var(--color-rose));
-  color: white;
+  background: linear-gradient(135deg, var(--color-blue), var(--color-orange));
+  color: var(--color-white);
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -209,17 +259,17 @@ button:focus-visible {
   text-align: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 3px solid var(--color-terracotta);
+  border-bottom: 3px solid var(--color-blue);
 }
 
 .analytics-page-header h1 {
-  color: #333;
+  color: var(--color-text-dark);
   margin-bottom: 10px;
 }
 
 .current-list-badge {
-  background: linear-gradient(135deg, var(--color-teal), var(--color-peach));
-  color: white;
+  background: linear-gradient(135deg, var(--color-orange), var(--color-yellow));
+  color: var(--color-white);
   padding: 10px 20px;
   border-radius: 25px;
   font-size: 16px;
@@ -230,7 +280,7 @@ button:focus-visible {
 .no-list-selected, .not-authenticated {
   text-align: center;
   padding: 40px 20px;
-  background: white;
+  background: var(--color-white);
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   margin: 20px 0;
@@ -248,8 +298,8 @@ button:focus-visible {
 }
 
 .list-card {
-  background: white;
-  border: 2px solid #f0f0f0;
+  background: var(--color-white);
+  border: 2px solid var(--color-border-light);
   border-radius: 12px;
   padding: 20px;
   cursor: pointer;
@@ -258,20 +308,20 @@ button:focus-visible {
 }
 
 .list-card:hover {
-  border-color: var(--color-teal);
+  border-color: var(--color-orange);
   transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(104, 187, 195, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 88, 0, 0.3);
 }
 
 .list-card h5 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: var(--color-text-dark);
   font-size: 18px;
 }
 
 .list-card p {
   margin: 5px 0;
-  color: #666;
+  color: var(--color-text-medium);
   font-size: 14px;
 }
 
@@ -279,7 +329,7 @@ button:focus-visible {
   display: block;
   margin-top: 15px;
   font-size: 12px;
-  color: var(--color-terracotta);
+  color: var(--color-yellow);
   font-weight: bold;
 }
 
@@ -289,12 +339,12 @@ button:focus-visible {
   gap: 20px;
   margin-top: 40px;
   padding-top: 30px;
-  border-top: 2px solid #f0f0f0;
+  border-top: 2px solid var(--color-border-light);
 }
 
 .back-to-list-button, .change-list-button, .create-list-button, .login-button {
-  background: linear-gradient(135deg, var(--color-rose), var(--color-peach));
-  color: white;
+  background: linear-gradient(135deg, var(--color-yellow), var(--color-orange));
+  color: var(--color-white);
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
@@ -321,14 +371,14 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: var(--color-gray-800);
+    background-color: var(--color-white);
   }
   a:hover {
-    color: #747bff;
+    color: var(--color-info);
   }
   button {
-    background-color: #f9f9f9;
+    background-color: var(--color-bg-lighter);
   }
 }
 

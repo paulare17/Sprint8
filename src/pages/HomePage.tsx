@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Container from '../components/todolist/Container';
 import { useAuth } from '../contexts/AuthContext';
+import FAQs from '../components/FAQs';
 
 function HomePage() {
   const { currentUser, userProfile } = useAuth();
@@ -22,12 +23,8 @@ function HomePage() {
             </button>
           </section>
 
-          <div className='img-preview'>
-            <img src="src/assets/imagetemporal.png" alt="Vista prèvia" />
-          </div>
-
           <div className="welcome-message">
-            <h2>Benvingut a Inprocode Shopping</h2>
+            <h2>Benvingut/da a Inprocode Shopping</h2>
             <p>La teva aplicació per gestionar llistes de compra compartides</p>
             <p>Registra't per començar a crear i compartir les teves llistes!</p>
           </div>
@@ -36,11 +33,12 @@ function HomePage() {
         <>
           {/* Mostrar llista de ToDo si està connectat */}
           <div className="user-info">
-            <h2>Benvingut, {userProfile?.displayName}!</h2>
+            <h2>Benvingut/da, {userProfile?.displayName}!</h2>
           </div>
           <Container />
         </>
       )}
+      <FAQs/>
     </>
   );
 }

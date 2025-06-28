@@ -8,6 +8,7 @@ import SupermarketSelector from '../components/SupermarketSelector';
 import type { EventInput } from '@fullcalendar/core';
 import type { Supermarket } from '../services/supermarketService';
 import './CalendarPage.css';
+import NoListSelected from '../components/NoListSelected';
 
 const CalendarPage: React.FC = () => {
   const { events, reminders, createReminder, deleteReminder, checkAndProcessReminders } = useCalendar();
@@ -21,7 +22,7 @@ const CalendarPage: React.FC = () => {
   });
   const [selectedSupermarket, setSelectedSupermarket] = useState<Supermarket | null>(null);
 
-  // Procesar recordatorios al cargar la página
+  // Procesar recordatorios al cargar la página - DEBE IR ANTES DEL RETURN CONDICIONAL
   useEffect(() => {
     checkAndProcessReminders();
   }, []);
@@ -103,6 +104,17 @@ const CalendarPage: React.FC = () => {
     if (weeks === 8) return '2 mesos';
     return `${weeks} setmanes`;
   };
+
+  // AHORA SÍ, DESPUÉS DE TODOS LOS HOOKS, VERIFICAMOS SI HAY LISTA
+  if (!currentList) {
+    return (
+      <NoListSelected
+        pageTitle="Calendari"
+        pageIcon="📅"
+        description="Selecciona una llista per veure els esdeveniments del calendari, crear recordatoris i gestionar les compres programades."
+      />
+    );
+  }
 
   return (
     <div className="calendar-page">
@@ -189,19 +201,6 @@ const CalendarPage: React.FC = () => {
             <h3>⏰ Crear Recordatori</h3>
             
             <div className="form-group">
-              <label>Llista:</label>
-              <select 
-                value={reminderForm.listId}
-                onChange={(e) => setReminderForm(prev => ({ ...prev, listId: e.target.value }))}
-              >
-                <option value="">Selecciona una llista</option>
-                {userLists.map(list => (
-                  <option key={list.id} value={list.id}>{list.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
               <label>Nom del producte:</label>
               <input 
                 type="text"
@@ -227,7 +226,7 @@ const CalendarPage: React.FC = () => {
             <div className="form-group">
               <label>Supermercat (opcional):</label>
               <SupermarketSelector
-                postalCode={userLists.find(list => list.id === reminderForm.listId)?.postalCode}
+                postalCode={currentList?.postalCode}
                 selectedSupermarket={selectedSupermarket}
                 onSupermarketSelect={setSelectedSupermarket}
                 placeholder="🏪 Seleccionar supermercat per al recordatori"
@@ -252,27 +251,22 @@ const CalendarPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal d'informació d'esdeveniment */}
+      {/* Modal d'informació d'esdeveniments */}
       {selectedEvent && (
-        <div className="modal-overlay" onClick={() => setSelectedEvent(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3>📋 Detalls de l'Esdeveniment</h3>
-            
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>📅 Detalls de l'Esdeveniment</h3>
             <div className="event-details">
-              <p><strong>Títol:</strong> {selectedEvent.title}</p>
-              <p><strong>Data:</strong> {selectedEvent.startStr}</p>
               <p><strong>Tipus:</strong> {getEventTypeLabel(selectedEvent.extendedProps.type)}</p>
-              {selectedEvent.extendedProps.listName && (
-                <p><strong>Llista:</strong> {selectedEvent.extendedProps.listName}</p>
-              )}
+              <p><strong>Llista:</strong> {selectedEvent.extendedProps.listName}</p>
               {selectedEvent.extendedProps.itemName && (
                 <p><strong>Producte:</strong> {selectedEvent.extendedProps.itemName}</p>
               )}
+              <p><strong>Data:</strong> {new Date(selectedEvent.start).toLocaleDateString('ca-ES')}</p>
             </div>
-
             <div className="modal-actions">
               <button 
-                className="btn-secondary"
+                className="btn-primary"
                 onClick={() => setSelectedEvent(null)}
               >
                 Tancar

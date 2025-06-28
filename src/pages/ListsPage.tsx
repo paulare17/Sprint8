@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useShoppingList } from '../contexts/ShoppingListContext';
 import { useAuth } from '../contexts/AuthContext';
 import CreateListForm from '../components/CreateListForm';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 const ListsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const ListsPage: React.FC = () => {
     switchToList, 
     joinList, 
     leaveList, 
+    deleteList,
     isLoading 
   } = useShoppingList();
   
@@ -21,7 +23,7 @@ const ListsPage: React.FC = () => {
   const [joinListId, setJoinListId] = useState('');
   const [joinError, setJoinError] = useState('');
 
-  const handleCreateList = (listId: string) => {
+  const handleCreateList = (_listId: string) => {
     setShowCreateForm(false);
     navigate('/pendents'); // Redirigir a la pàgina de pendents
   };
@@ -58,6 +60,23 @@ const ListsPage: React.FC = () => {
   const handleLeaveList = (listId: string, listName: string) => {
     if (window.confirm(`Estàs segur que vols sortir de la llista "${listName}"?`)) {
       leaveList(listId);
+    }
+  };
+
+  const handleDeleteList = async (listId: string, listName: string) => {
+    if (!userProfile) return;
+
+    if (!confirm(`Estàs segur que vols eliminar la llista "${listName}"?\n\nAixò eliminarà tots els productes i no es podrà desfer.`)) {
+      return;
+    }
+
+    try {
+      await deleteList(listId);
+      alert('Llista eliminada correctament');
+    } catch (error) {
+      console.error('Error eliminant llista:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error eliminant la llista';
+      alert(`Error eliminant la llista: ${errorMessage}`);
     }
   };
 
@@ -191,7 +210,16 @@ const ListsPage: React.FC = () => {
                     {currentList?.id === list.id ? 'Llista Activa' : 'Seleccionar'}
                   </button>
                   
-                  {list.createdBy !== userProfile?.email && (
+                  {list.createdBy === userProfile?.email ? (
+                    <button 
+                      className="btn-danger"
+                      onClick={() => handleDeleteList(list.id, list.name)}
+                      title="Eliminar llista (només el creador)"
+                    >
+                      <DeleteForeverIcon />
+                      Eliminar
+                    </button>
+                  ) : (
                     <button 
                       className="btn-danger"
                       onClick={() => handleLeaveList(list.id, list.name)}

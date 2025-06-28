@@ -36,11 +36,6 @@ const RegisterPage: React.FC = () => {
         </button>
       </section>
 
-      {/* Imatge */}
-      <div className='img-preview'>
-        <img src="src/assets/imagetemporal.png" alt="Vista prèvia" />
-      </div>
-
       {/* Formularis */}
       {showLogin ? (
         <LoginForm onSwitchToRegister={() => setShowLogin(false)} />

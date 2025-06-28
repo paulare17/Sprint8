@@ -1,7 +1,50 @@
-# React + TypeScript + Vite
+# 🛒 Shopping List App - React + TypeScript + Vite + MongoDB
 
-Usos: react, MUI, typescript, vite, react hook form, mongodb, axios , firebase
-APIs: https://world-es.openfoodfacts.org/ /// mapbox
+**Tecnologies utilitzades:** React, TypeScript, Vite, Material-UI, MongoDB, Firebase, Express.js
+
+**APIs externes:** 
+- 🗺️ Mapbox (visualització de mapes)
+- 🌍 Geoapify (dades geoespacials de supermercats)
+- 🥫 OpenFoodFacts (informació de productes)
+- 🔥 Firebase (autenticació i dades d'usuari en temps real)
+
+## 🏗️ Arquitectura Híbrida
+
+Aquest projecte utilitza una **arquitectura híbrida innovadora**:
+
+### Frontend (React + Vite)
+- 🔥 **Firebase Firestore**: Gestió d'usuaris, llistes compartides, calendari i sincronització en temps real
+- 🏪 **MongoDB via API**: Cache intel·ligent de supermercats, dades geoespacials i analítiques
+
+### Backend (Express + MongoDB)
+- 📊 **Cache intel·ligent**: Les dades de supermercats es guarden a MongoDB per evitar crides constants a APIs externes
+- 🌍 **Capacitats geoespacials**: Queries eficients per trobar supermercats propers
+- 📈 **Analítiques**: Seguiment de visites, ratings d'usuaris i estadístiques
+
+## ✨ Funcionalitats principals
+
+### 🗺️ **Sistema de Mapes Intel·ligent**
+- Mapa interactiu amb Mapbox
+- **Cache automàtic**: Primera cerca crida a Geoapify → Guarda a MongoDB → Següents cerques des de MongoDB
+- Marcadors diferents per supermercats amb/sense productes assignats
+- Cerca geoespacial per proximitat
+
+### 🏪 **Gestió de Supermercats**
+- Base de dades pròpia amb dades enriquides
+- Ratings d'usuaris i comptador de visites
+- Possibilitat d'afegir supermercats manualment
+- Cerca per nom, cadena o ubicació
+
+### 📋 **Llistes de Compra Col·laboratives**
+- Creació i gestió de llistes compartides
+- Assignació de productes a supermercats específics
+- Sincronització en temps real entre usuaris
+- Històrial de compres
+
+### 📅 **Calendari i Recordatoris**
+- Programació de recordatoris de compra
+- Integració amb les llistes i productes
+- Vista de calendari amb esdeveniments personalitzats
 
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

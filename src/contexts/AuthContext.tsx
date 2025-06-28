@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<UserProfile>;
   register: (email: string, password: string, displayName: string, postalCode: string, listOption: 'new-list' | 'add-to-list') => Promise<UserProfile>;
   logout: () => Promise<void>;
+  updateProfile: (updates: { displayName?: string; postalCode?: string; listOption?: 'new-list' | 'add-to-list' }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -138,13 +139,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUserProfile(null);
   };
 
+  const updateProfile = async (updates: { displayName?: string; postalCode?: string; listOption?: 'new-list' | 'add-to-list' }): Promise<void> => {
+    if (!currentUser || !userProfile) {
+      throw new Error('No hi ha usuari autenticat');
+    }
+
+    if (!FIREBASE_ENABLED) {
+      // Mode offline - actualitzar perfil local
+      const updatedProfile = { ...userProfile, ...updates };
+      setUserProfile(updatedProfile);
+      return;
+    }
+
+    try {
+      const updatedProfile = await authService.updateUserProfile(currentUser.uid, updates);
+      setUserProfile(updatedProfile);
+    } catch (error) {
+      console.error('❌ Error actualitzant perfil:', error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     currentUser,
     userProfile,
     loading,
     login,
     register,
-    logout
+    logout,
+    updateProfile
   };
 
   return (

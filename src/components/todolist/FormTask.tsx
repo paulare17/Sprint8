@@ -19,14 +19,16 @@ const FormTask: React.FC<ToDoListProps> = ({ handleAddItem }) => {
     e.preventDefault();
     if (!task.trim()) return;
 
-    const newItem = {
+    const newItem: Omit<ToDoItem, 'id' | 'addedBy' | 'addedAt'> = {
       done: false,
       task: task.trim(),
-      supermarket: selectedSupermarket ? {
-        id: selectedSupermarket.id,
-        name: selectedSupermarket.name,
-        chain: selectedSupermarket.chain
-      } : undefined
+      ...(selectedSupermarket && {
+        supermarket: {
+          id: selectedSupermarket.id,
+          name: selectedSupermarket.name,
+          chain: selectedSupermarket.chain
+        }
+      })
     };
 
     handleAddItem(newItem);

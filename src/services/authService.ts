@@ -20,6 +20,61 @@ import {
   
   class AuthService {
     
+    // ✏️ Actualitzar perfil d'usuari
+    async updateUserProfile(
+      uid: string,
+      updates: {
+        displayName?: string;
+        postalCode?: string;
+        listOption?: 'new-list' | 'add-to-list';
+      }
+    ): Promise<UserProfile> {
+      try {
+        console.log('🔄 Updating user profile...', { uid, updates });
+
+        const user = auth.currentUser;
+        if (!user || user.uid !== uid) {
+          throw new Error('Usuario no autenticado o UID no coincide');
+        }
+
+        // 1. Actualitzar Firebase Auth (displayName)
+        if (updates.displayName !== undefined) {
+          await updateProfile(user, {
+            displayName: updates.displayName
+          });
+          console.log('✅ Display name updated in Auth');
+        }
+
+        // 2. Obtenir perfil actual de Firestore
+        const userDocRef = doc(db, 'users', uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (!userDoc.exists()) {
+          throw new Error('Perfil d\'usuari no trobat a Firestore');
+        }
+
+        const currentProfile = userDoc.data() as UserProfile;
+
+        // 3. Crear perfil actualitzat
+        const updatedProfile: UserProfile = {
+          ...currentProfile,
+          ...updates,
+          uid, // Assegurar que el UID no canviï
+          email: currentProfile.email // Assegurar que l'email no canviï
+        };
+
+        // 4. Guardar a Firestore
+        await setDoc(userDocRef, updatedProfile, { merge: true });
+        console.log('✅ Profile updated in Firestore');
+
+        return updatedProfile;
+      } catch (error: unknown) {
+        console.error('❌ Error updating user profile:', error);
+        const firebaseError = error as { code?: string, message?: string };
+        throw new Error(firebaseError.message || 'Error actualitzant el perfil');
+      }
+    }
+
     async registerUser(
       email: string, 
       password: string, 

@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import { useAuth } from '../contexts/AuthContext';
 import { useShoppingList } from '../contexts/ShoppingListContext';
 import { supermarketService, type Supermarket } from '../services/supermarketService';
+import NoListSelected from '../components/NoListSelected';
 
 // Import Mapbox CSS
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -11,12 +12,14 @@ const MapPage: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const { userProfile } = useAuth();
-  const { currentList } = useShoppingList();
+  const { currentList, addItemToCurrentList } = useShoppingList();
   
   const [supermarkets, setSupermarkets] = useState<Supermarket[]>([]);
   const [selectedSupermarket, setSelectedSupermarket] = useState<Supermarket | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mapError, setMapError] = useState<string | null>(null);
+  // Estado para añadir productos desde el popup
+  const [newProductName, setNewProductName] = useState('');
 
   // Inicialitzar mapa només una vegada
   useEffect(() => {
@@ -210,27 +213,54 @@ const MapPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [isLoading, currentList?.postalCode]); // Usar postalCode en lloc de id per detectar canvis de zona
+  }, [isLoading, currentList?.postalCode, currentList?.id, currentList?.items]); // Afegir dependències per actualitzar marcadors quan canvia la llista o els productes
 
+  // Función para añadir producto al supermercado seleccionado
+  const handleAddProductToSupermarket = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newProductName.trim() || !selectedSupermarket || !currentList) {
+      return;
+    }
+
+    // Crear el nuevo producto con el supermercado asignado
+    const newItem = {
+      done: false,
+      task: newProductName.trim(),
+      supermarket: {
+        id: selectedSupermarket.id,
+        name: selectedSupermarket.name,
+        chain: selectedSupermarket.chain
+      }
+    };
+
+    // Añadir el producto a la lista activa
+    addItemToCurrentList(newItem);
+    
+    // Limpiar el input
+    setNewProductName('');
+    
+    console.log(`✅ Producte "${newProductName.trim()}" afegit a ${selectedSupermarket.name}`);
+  };
 
   if (!userProfile) {
     return (
-      <div className="map-page">
-        <div className="map-auth-required">
-          <h3>Inicia sessió per veure el mapa</h3>
-        </div>
-      </div>
+      <NoListSelected
+        pageTitle="Mapa de Supermercats"
+        pageIcon="🗺️"
+        description="Inicia sessió per veure el mapa dels supermercats de la teva zona."
+        showCreateJoinButtons={false}
+      />
     );
   }
 
   if (!currentList) {
     return (
-      <div className="map-page">
-        <div className="map-header">
-          <h2>🗺️ Mapa de Supermercats</h2>
-          <p>⚠️ Selecciona una llista per veure el mapa</p>
-        </div>
-      </div>
+      <NoListSelected
+        pageTitle="Mapa de Supermercats"
+        pageIcon="🗺️"
+        description="Selecciona una llista amb codi postal per veure el mapa dels supermercats de la zona i poder afegir productes directament des del mapa."
+      />
     );
   }
 
@@ -311,6 +341,48 @@ const MapPage: React.FC = () => {
             </div>
             <div className="popup-content">
               <p style={{ margin: '5px 0' }}>📍 {selectedSupermarket.address}</p>
+              
+              {/* Formulario para añadir productos */}
+              <div style={{ marginTop: '12px', marginBottom: '12px', padding: '10px', background: '#f0f8ff', borderRadius: '6px', border: '1px solid #e3f2fd' }}>
+                <h5 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#1976d2', fontWeight: '600' }}>
+                  ➕ Afegir producte aquí
+                </h5>
+                <form onSubmit={handleAddProductToSupermarket} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={newProductName}
+                    onChange={(e) => setNewProductName(e.target.value)}
+                    placeholder="Nom del producte..."
+                    style={{
+                      flex: 1,
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#1976d2'}
+                    onBlur={(e) => e.target.style.borderColor = '#ddd'}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newProductName.trim()}
+                    style={{
+                      background: newProductName.trim() ? '#1976d2' : '#ccc',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '6px 10px',
+                      cursor: newProductName.trim() ? 'pointer' : 'not-allowed',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                  >
+                    ➕
+                  </button>
+                </form>
+              </div>
               
               {/* Mostrar productos assignados si n'hi ha */}
               {(() => {

@@ -68,7 +68,7 @@ const TaskList: React.FC = () => {
   ));
 
   return (
-    <div className='todo-list'>
+    <div className='todo-list'>      
       {/* Productos activos */}
       {activeChecks}
       
