@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -19,13 +19,13 @@ mongoose.connect(process.env.MONGO_URL || "")
     console.log("✅ Connectat a MongoDB");
     console.log(`🏪 Base de dades: ${mongoose.connection.name}`);
   })
-  .catch((err) => {
+  .catch((err: Error) => {
     console.error("❌ Error MongoDB:", err);
     process.exit(1);
   });
 
 // Configurar esdeveniments de MongoDB
-mongoose.connection.on('error', (err) => {
+mongoose.connection.on('error', (err: Error) => {
   console.error('❌ Error de connexió MongoDB:', err);
 });
 
@@ -34,7 +34,7 @@ mongoose.connection.on('disconnected', () => {
 });
 
 // Rutes
-app.get("/", (_req, res) => {
+app.get("/", (_req: Request, res: Response) => {
   res.json({
     message: "🏪 Servidor de supermercats actiu",
     version: "1.0.0",
@@ -46,7 +46,7 @@ app.get("/", (_req, res) => {
   });
 });
 
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.json({
     status: "healthy",
     database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
@@ -58,7 +58,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/supermarkets", supermarketRoutes);
 
 // Middleware per gestionar errors 404
-app.use("*", (_req, res) => {
+app.use("*", (_req: Request, res: Response) => {
   res.status(404).json({
     error: "Endpoint no trobat",
     availableEndpoints: [
@@ -77,7 +77,7 @@ app.use("*", (_req, res) => {
 });
 
 // Middleware per gestionar errors globals
-app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('❌ Error del servidor:', error);
   res.status(500).json({
     error: 'Error intern del servidor',

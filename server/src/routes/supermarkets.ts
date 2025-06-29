@@ -1,10 +1,11 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { supermarketService } from '../services/supermarketService';
+import { Supermarket } from '../models/Supermarket';
 
 const router = express.Router();
 
 // 🔍 GET /api/supermarkets/postal/:postalCode - Obtenir supermercats per codi postal
-router.get('/postal/:postalCode', async (req, res) => {
+router.get('/postal/:postalCode', async (req: Request, res: Response) => {
   try {
     const { postalCode } = req.params;
     const forceRefresh = req.query.forceRefresh === 'true';
@@ -35,7 +36,7 @@ router.get('/postal/:postalCode', async (req, res) => {
 });
 
 // 🌍 GET /api/supermarkets/nearby - Obtenir supermercats propers per coordenades
-router.get('/nearby', async (req, res) => {
+router.get('/nearby', async (req: Request, res: Response) => {
   try {
     const { lng, lat, maxDistance } = req.query;
     
@@ -74,7 +75,7 @@ router.get('/nearby', async (req, res) => {
 });
 
 // 🏪 POST /api/supermarkets - Afegir supermercat manual
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { name, address, postalCode, chain, lng, lat } = req.body;
     
@@ -91,7 +92,7 @@ router.post('/', async (req, res) => {
       chain: chain?.trim(),
       location: {
         type: 'Point' as const,
-        coordinates: [parseFloat(lng), parseFloat(lat)]
+        coordinates: [parseFloat(lng), parseFloat(lat)] as [number, number]
       }
     };
 
@@ -112,7 +113,7 @@ router.post('/', async (req, res) => {
 });
 
 // 📈 GET /api/supermarkets/stats - Obtenir estadístiques globals
-router.get('/stats', async (req, res) => {
+router.get('/stats', async (req: Request, res: Response) => {
   try {
     const stats = await supermarketService.getSupermarketStats();
     
@@ -130,7 +131,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // 🔄 POST /api/supermarkets/refresh/:postalCode - Forçar actualització cache
-router.post('/refresh/:postalCode', async (req, res) => {
+router.post('/refresh/:postalCode', async (req: Request, res: Response) => {
   try {
     const { postalCode } = req.params;
     
@@ -159,7 +160,7 @@ router.post('/refresh/:postalCode', async (req, res) => {
 });
 
 // 🔍 GET /api/supermarkets/search - Buscar supermercats per nom o cadena
-router.get('/search', async (req, res) => {
+router.get('/search', async (req: Request, res: Response) => {
   try {
     const { q, postalCode } = req.query;
     
