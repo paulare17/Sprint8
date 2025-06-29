@@ -54,7 +54,6 @@ const FormTask: React.FC<ToDoListProps> = ({ handleAddItem }) => {
   };
 
   const handleSupermarketSelect = (supermarket: Supermarket | null) => {
-    console.log('🏪 Supermercat seleccionat:', supermarket?.name || 'Cap');
     setSelectedSupermarket(supermarket);
   };
 

@@ -38,63 +38,43 @@ class SupermarketService {
 
   // 🎯 Mètode principal: obtenir supermercats amb cache intel·ligent
   async getSupermarketsByPostalCode(postalCode: string, forceRefresh: boolean = false): Promise<ISupermarket[]> {
-    try {
-      console.log(`🔍 Buscant supermercats per codi postal: ${postalCode}`);
-
-      // 1. Comprovar cache si no forcem refresh
-      if (!forceRefresh) {
-        const cachedSupermarkets = await Supermarket.findByPostalCode(postalCode, 24); // 24h cache
-        if (cachedSupermarkets.length > 0) {
-          console.log(`✅ Trobats ${cachedSupermarkets.length} supermercats en cache`);
-          return cachedSupermarkets;
-        }
+    // 1. Comprovar cache si no forcem refresh
+    if (!forceRefresh) {
+      const cachedSupermarkets = await Supermarket.findByPostalCode(postalCode, 24); // 24h cache
+      if (cachedSupermarkets.length > 0) {
+        return cachedSupermarkets;
       }
-
-      // 2. Si no hi ha cache o forcem refresh, obtenir de APIs externes
-      console.log(`🌐 Obtenint supermercats frescos de APIs externes...`);
-      const coordinates = await this.getCoordinatesFromPostalCode(postalCode);
-      
-      if (!coordinates) {
-        throw new Error(`No s'han pogut obtenir coordenades per al codi postal: ${postalCode}`);
-      }
-
-      const freshSupermarkets = await this.fetchFromGeoapify(coordinates, postalCode);
-      
-      // 3. Guardar a MongoDB
-      const savedSupermarkets = await this.saveSupermarkets(freshSupermarkets);
-      
-      console.log(`✅ Guardats ${savedSupermarkets.length} supermercats nous a MongoDB`);
-      return savedSupermarkets;
-
-    } catch (error) {
-      console.error(`❌ Error obtenint supermercats per ${postalCode}:`, error);
-      throw error;
     }
+
+    // 2. Si no hi ha cache o forcem refresh, obtenir de APIs externes
+    const coordinates = await this.getCoordinatesFromPostalCode(postalCode);
+    
+    if (!coordinates) {
+      throw new Error(`No s'han pogut obtenir coordenades per al codi postal: ${postalCode}`);
+    }
+
+    const freshSupermarkets = await this.fetchFromGeoapify(coordinates, postalCode);
+    
+    // 3. Guardar a MongoDB
+    const savedSupermarkets = await this.saveSupermarkets(freshSupermarkets);
+    
+    return savedSupermarkets;
   }
 
   // 🌍 Buscar supermercats propers per coordenades
   async getSupermarketsNearby(lng: number, lat: number, maxDistance: number = 2000): Promise<ISupermarket[]> {
-    try {
-      console.log(`📍 Buscant supermercats propers a [${lng}, ${lat}] en un radi de ${maxDistance}m`);
-      
-      const nearbySupermarkets = await Supermarket.findNearby(lng, lat, maxDistance);
-      
-      // Afegir distància calculada a cada supermercat
-      const supermarketsWithDistance = nearbySupermarkets.map((supermarket: ISupermarket) => {
-        const distance = supermarket.getDistance(lng, lat);
-        return {
-          ...supermarket.toObject(),
-          distance: Math.round(distance)
-        };
-      });
+    const nearbySupermarkets = await Supermarket.findNearby(lng, lat, maxDistance);
+    
+    // Afegir distància calculada a cada supermercat
+    const supermarketsWithDistance = nearbySupermarkets.map((supermarket: ISupermarket) => {
+      const distance = supermarket.getDistance(lng, lat);
+      return {
+        ...supermarket.toObject(),
+        distance: Math.round(distance)
+      };
+    });
 
-      console.log(`✅ Trobats ${supermarketsWithDistance.length} supermercats propers`);
-      return supermarketsWithDistance.sort((a: { distance: number }, b: { distance: number }) => a.distance - b.distance);
-
-    } catch (error) {
-      console.error(`❌ Error buscant supermercats propers:`, error);
-      throw error;
-    }
+    return supermarketsWithDistance.sort((a: { distance: number }, b: { distance: number }) => a.distance - b.distance);
   }
 
   // 📋 Obtenir coordenades d'un codi postal
@@ -114,14 +94,12 @@ class SupermarketService {
         const coordinates = data.features[0].geometry?.coordinates;
         if (coordinates) {
           const [lng, lat] = coordinates;
-          console.log(`📍 Coordenades obtingudes per ${postalCode}: [${lng}, ${lat}]`);
           return [lng, lat];
         }
       }
       
       return null;
-    } catch (error) {
-      console.error('❌ Error obtenint coordenades:', error);
+    } catch {
       return null;
     }
   }
@@ -173,8 +151,8 @@ class SupermarketService {
             }
           }
         }
-      } catch (error) {
-        console.warn(`⚠️ Error buscant categoria ${category}:`, error);
+      } catch {
+        // Ignorar errors en categories específiques
       }
     }
 
@@ -212,8 +190,8 @@ class SupermarketService {
           const saved = await newSupermarket.save();
           savedSupermarkets.push(saved);
         }
-      } catch (error) {
-        console.warn(`⚠️ Error guardant supermercat ${data.name}:`, error);
+      } catch {
+        // Ignorar errors en supermercats individuals
       }
     }
 
@@ -222,24 +200,16 @@ class SupermarketService {
 
   // 🏪 Afegir supermercat manual
   async addManualSupermarket(data: Omit<SupermarketData, 'source'>): Promise<ISupermarket> {
-    try {
-      const supermarketData: SupermarketData = {
-        ...data,
-        source: 'manual'
-      };
+    const supermarketData: SupermarketData = {
+      ...data,
+      source: 'manual'
+    };
 
-      const newSupermarket = new Supermarket(supermarketData);
-      const saved = await newSupermarket.save();
-      
-      console.log(`✅ Supermercat manual afegit: ${saved.name}`);
-      return saved;
-    } catch (error) {
-      console.error(`❌ Error afegint supermercat manual:`, error);
-      throw error;
-    }
+    const newSupermarket = new Supermarket(supermarketData);
+    const saved = await newSupermarket.save();
+    
+    return saved;
   }
-
-
 
   // 🧹 Utilities
   private extractChainFromName(name: string): string {
@@ -271,24 +241,19 @@ class SupermarketService {
 
   // 📈 Estadístiques bàsiques
   async getSupermarketStats(): Promise<{ totalSupermarkets: number; chainDistribution: string[] }> {
-    try {
-      const stats = await Supermarket.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalSupermarkets: { $sum: 1 },
-            chainDistribution: {
-              $push: '$chain'
-            }
+    const stats = await Supermarket.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalSupermarkets: { $sum: 1 },
+          chainDistribution: {
+            $push: '$chain'
           }
         }
-      ]);
+      }
+    ]);
 
-      return stats[0] || { totalSupermarkets: 0, chainDistribution: [] };
-    } catch (error) {
-      console.error('❌ Error obtenint estadístiques:', error);
-      throw error;
-    }
+    return stats[0] || { totalSupermarkets: 0, chainDistribution: [] };
   }
 }
 

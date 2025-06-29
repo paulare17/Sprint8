@@ -1,10 +1,7 @@
 import React, { useState } from "react";
-// import FormTask from "../components/todolist/FormTask";
 import Container from "../components/todolist/Container";
-// import Check from "../components/todolist/Check";
-// import TaskList from "../components/todolist/TaskList";
 import { useShoppingList } from "../contexts/ShoppingListContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useCalendar } from "../contexts/CalendarContext";
 import SupermarketSelector from "../components/SupermarketSelector";
 import CreateListForm from "../components/CreateListForm";
@@ -16,19 +13,13 @@ function Pendents() {
   const { currentUser, userProfile } = useAuth();
   const { 
     currentList, 
-    userLists, 
     switchToList, 
-    joinList, 
     leaveList,
-    deleteList,
-    isLoading 
+    deleteList
   } = useShoppingList();
   const { createReminder } = useCalendar();
   
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showJoinForm, setShowJoinForm] = useState(false);
-  const [joinListId, setJoinListId] = useState('');
-  const [joinError, setJoinError] = useState('');
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [reminderForm, setReminderForm] = useState({
     itemName: '',
@@ -36,64 +27,31 @@ function Pendents() {
   });
   const [selectedReminderSupermarket, setSelectedReminderSupermarket] = useState<Supermarket | null>(null);
 
-  const handleCreateList = (listId: string) => {
+  const handleCreateList = () => {
     setShowCreateForm(false);
     // La llista ja s'ha seleccionat automàticament al crear-la
   };
 
-  const handleJoinList = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!joinListId.trim()) {
-      setJoinError('Introdueix un ID de llista vàlid');
-      return;
-    }
-
-    try {
-      setJoinError('');
-      const success = await joinList(joinListId.trim().toUpperCase());
-      
-      if (success) {
-        setShowJoinForm(false);
-        setJoinListId('');
-      } else {
-        setJoinError('Llista no trobada. Verifica l\'ID de la llista.');
-      }
-    } catch (error) {
-      setJoinError('Error al unir-se a la llista. Torna-ho a intentar.');
-    }
-  };
-
-  const handleSwitchToList = (listId: string) => {
-    switchToList(listId);
-  };
-
   const handleCreateReminder = async () => {
     if (!reminderForm.itemName || !currentList) {
-      alert('Sisplau, emplena tots els camps');
       return;
     }
 
-    try {
-      await createReminder(
-        currentList.id,
-        reminderForm.itemName,
-        reminderForm.intervalWeeks,
-        new Date(),
-        selectedReminderSupermarket ? {
-          id: selectedReminderSupermarket.id,
-          name: selectedReminderSupermarket.name,
-          chain: selectedReminderSupermarket.chain
-        } : undefined
-      );
-      setShowReminderModal(false);
-      setReminderForm({ itemName: '', intervalWeeks: 2 });
-      setSelectedReminderSupermarket(null);
-      alert('Recordatori creat correctament!');
-    } catch (error) {
-      console.error('Error creant recordatori:', error);
-      alert('Error creant el recordatori');
-    }
+    await createReminder(
+      currentList.id,
+      reminderForm.itemName,
+      reminderForm.intervalWeeks,
+      new Date(),
+      selectedReminderSupermarket ? {
+        id: selectedReminderSupermarket.id,
+        name: selectedReminderSupermarket.name,
+        chain: selectedReminderSupermarket.chain
+      } : undefined
+    );
+    setShowReminderModal(false);
+    setReminderForm({ itemName: '', intervalWeeks: 2 });
+    setSelectedReminderSupermarket(null);
+
   };
 
   const handleDeleteList = async () => {
@@ -103,14 +61,7 @@ function Pendents() {
       return;
     }
 
-    try {
-      await deleteList(currentList.id);
-      alert('Llista eliminada correctament');
-    } catch (error) {
-      console.error('Error eliminant llista:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error eliminant la llista';
-      alert(`Error eliminant la llista: ${errorMessage}`);
-    }
+    await deleteList(currentList.id);
   };
 
   const handleLeaveList = async () => {
@@ -120,13 +71,7 @@ function Pendents() {
       return;
     }
 
-    try {
-      await leaveList(currentList.id);
-      alert('Has sortit de la llista correctament');
-    } catch (error) {
-      console.error('Error sortint de la llista:', error);
-      alert('Error sortint de la llista');
-    }
+    await leaveList(currentList.id);
   };
 
   // Si no està autenticat, usar el component unificat

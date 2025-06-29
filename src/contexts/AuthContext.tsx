@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, FIREBASE_ENABLED } from '../services/firebaseConfig';
@@ -15,15 +15,7 @@ interface AuthContextType {
   updateProfile: (updates: { displayName?: string; postalCode?: string; listOption?: 'new-list' | 'add-to-list' }) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -50,8 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const profile = await authService.getCurrentUserProfile();
           setUserProfile(profile);
-        } catch (error) {
-          console.warn('No s\'ha pogut obtenir el perfil d\'usuari:', error);
+        } catch {
           // En cas d'error, crear un perfil temporal amb les dades disponibles
           setUserProfile({
             uid: user.uid,
@@ -151,13 +142,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
-    try {
-      const updatedProfile = await authService.updateUserProfile(currentUser.uid, updates);
-      setUserProfile(updatedProfile);
-    } catch (error) {
-      console.error('❌ Error actualitzant perfil:', error);
-      throw error;
-    }
+    const updatedProfile = await authService.updateUserProfile(currentUser.uid, updates);
+    setUserProfile(updatedProfile);
   };
 
   const value: AuthContextType = {

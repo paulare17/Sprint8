@@ -38,8 +38,7 @@ const SupermarketSelector: React.FC<SupermarketSelectorProps> = ({
         const results = await supermarketService.searchSupermarkets(postalCode);
         setSupermarkets(results);
         setShowSupermarkets(results.length > 0);
-      } catch (error) {
-        console.error('Error searching supermarkets:', error);
+      } catch {
         setSupermarkets([]);
         setShowSupermarkets(false);
       } finally {

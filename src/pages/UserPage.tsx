@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { useShoppingList } from '../contexts/ShoppingListContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,8 +37,8 @@ const UserPage: React.FC = () => {
     try {
       await logout();
       navigate('/');
-    } catch (error) {
-      console.error('Error logging out:', error);
+    } catch {
+      // Error handling ya se hace en el AuthContext
     }
   };
 
@@ -89,10 +89,8 @@ const UserPage: React.FC = () => {
       });
       
       setIsEditing(false);
-      console.log('✅ Perfil actualitzat correctament');
-    } catch (error) {
-      console.error('❌ Error actualitzant perfil:', error);
-      setUpdateError(error instanceof Error ? error.message : 'Error actualitzant el perfil');
+    } catch {
+      setUpdateError('Error actualitzant el perfil');
     } finally {
       setIsUpdating(false);
     }
@@ -108,11 +106,8 @@ const UserPage: React.FC = () => {
 
     try {
       await deleteList(listId);
-      console.log(`✅ Llista "${listName}" eliminada correctament`);
-    } catch (error) {
-      console.error('❌ Error eliminant llista:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error eliminant la llista';
-      setDeleteError(`Error eliminant "${listName}": ${errorMessage}`);
+    } catch {
+      // Error ja mostrat pel context
     } finally {
       setDeletingListId(null);
     }
@@ -123,15 +118,8 @@ const UserPage: React.FC = () => {
   const pendingItems = allItems.filter(item => !item.done);
   const completedItems = allItems.filter(item => item.done);
 
-  const handleGoToList = (listId: string) => {
-    const listName = userLists.find(list => list.id === listId)?.name;
+  const handleSelectList = (listId: string) => {
     switchToList(listId);
-    
-    // Petita notificació visual opcional 
-    if (listName) {
-      console.log(`✅ Llista "${listName}" seleccionada`);
-    }
-    
     navigate('/pendents');
   };
 
@@ -349,7 +337,7 @@ const UserPage: React.FC = () => {
                   
                   <div 
                     className="list-content"
-                    onClick={() => handleGoToList(list.id)}
+                    onClick={() => handleSelectList(list.id)}
                   >
                     <div className="list-overview-info">
                       <p className="list-location">📍 {list.postalCode}</p>

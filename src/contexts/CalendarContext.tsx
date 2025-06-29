@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { CalendarEvent, Reminder } from '../components/types';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { 
   collection, 
   doc, 
@@ -23,7 +23,7 @@ interface CalendarContextType {
   markPurchaseCompleted: (listId: string, listName: string, itemId: string, itemName: string, date: Date) => void;
   createReminder: (listId: string, itemName: string, intervalWeeks: number, originalDate?: Date, supermarket?: { id: string; name: string; chain?: string; }) => Promise<void>;
   deleteReminder: (reminderId: string) => Promise<void>;
-  checkAndProcessReminders: () => Promise<void>;
+
 }
 
 const CalendarContext = createContext<CalendarContextType | undefined>(undefined);
@@ -34,7 +34,7 @@ export const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }
   // stats calendari
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   useEffect(() => {
     if (!currentUser || !userProfile) {
@@ -121,10 +121,9 @@ export const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     try {
-      const eventId = `${listId}-${itemId}-added-${Date.now()}`;
-      await setDoc(doc(db, 'calendarEvents', eventId), eventData);
-    } catch (error) {
-      console.error('Error afegint event:', error);
+      await setDoc(doc(db, 'calendarEvents', `${listId}-${itemId}-added-${Date.now()}`), eventData);
+    } catch {
+      // Error manejado silenciosamente
     }
   };
 
@@ -147,10 +146,9 @@ export const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     try {
-      const eventId = `${listId}-${itemId}-purchased-${Date.now()}`;
-      await setDoc(doc(db, 'calendarEvents', eventId), eventData);
-    } catch (error) {
-      console.error('Error afegint compra:', error);
+      await setDoc(doc(db, 'calendarEvents', `${listId}-${itemId}-purchased-${Date.now()}`), eventData);
+    } catch {
+      // Error manejado silenciosamente
     }
   };
 
@@ -175,10 +173,9 @@ export const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     try {
-      const reminderId = `reminder-${Date.now()}`;
-      await setDoc(doc(db, 'reminders', reminderId), reminderData);
-    } catch (error) {
-      console.error('Error creant recordatori:', error);
+      await setDoc(doc(db, 'reminders', `reminder-${Date.now()}`), reminderData);
+    } catch {
+      // Error manejado silenciosamente
     }
   };
 
@@ -186,17 +183,12 @@ export const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }
   const deleteReminder = async (reminderId: string) => {
     try {
       await deleteDoc(doc(db, 'reminders', reminderId));
-    } catch (error) {
-      console.error('Error eliminant recordatori:', error);
+    } catch {
+      // Error manejado silenciosamente
     }
   };
 
-  // 🔄 Processar recordatoris (funció buida per compatibilitat)
-  const checkAndProcessReminders = async () => {
-    // Funció simplificada - ja no fa res perquè era massa complicada
-    // Però la mantenim per no trencar CalendarPage.tsx
-    console.log('🔄 Processant recordatoris...');
-  };
+
 
 
   const contextValue: CalendarContextType = {
@@ -206,8 +198,7 @@ export const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }
     addProductAddedEvent,        // Nom original mantenen
     markPurchaseCompleted,       // Nom original mantenen  
     createReminder,              // Signatura original mantinguda
-    deleteReminder,
-    checkAndProcessReminders     // Funció mantinguda (però simplificada)
+    deleteReminder
   };
 
   return (

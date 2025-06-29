@@ -1,34 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useCalendar } from '../contexts/CalendarContext';
 import { useShoppingList } from '../contexts/ShoppingListContext';
-import SupermarketSelector from '../components/SupermarketSelector';
+
 import type { EventInput } from '@fullcalendar/core';
-import type { Supermarket } from '../services/supermarketService';
+
 import './CalendarPage.css';
 import NoListSelected from '../components/NoListSelected';
 
 const CalendarPage: React.FC = () => {
-  const { events, reminders, createReminder, deleteReminder, checkAndProcessReminders } = useCalendar();
-  const { userLists, currentList } = useShoppingList();
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const { events, reminders, createReminder, deleteReminder } = useCalendar();
+  const { currentList } = useShoppingList();
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [reminderForm, setReminderForm] = useState({
     listId: '',
     itemName: '',
     intervalWeeks: 2
   });
-  const [selectedSupermarket, setSelectedSupermarket] = useState<Supermarket | null>(null);
 
-  // Procesar recordatorios al cargar la página - DEBE IR ANTES DEL RETURN CONDICIONAL
-  useEffect(() => {
-    checkAndProcessReminders();
-  }, []);
 
-  // Convertir eventos para FullCalendar
-  const calendarEvents: EventInput[] = events.map(event => ({
+
+  // Filtrar esdeveniments per llista actual
+  const filteredEvents = useMemo(() => {
+    if (!currentList) return [];
+    return events.filter(event => event.listId === currentList.id);
+  }, [events, currentList]);
+
+  // Filtrar recordatoris per llista actual
+  const filteredReminders = useMemo(() => {
+    if (!currentList) return [];
+    return reminders.filter(reminder => reminder.listId === currentList.id);
+  }, [reminders, currentList]);
+
+  // Convertir eventos filtrados para FullCalendar
+  const calendarEvents: EventInput[] = filteredEvents.map(event => ({
     id: event.id,
     title: event.title,
     date: event.date,
@@ -43,13 +50,7 @@ const CalendarPage: React.FC = () => {
     }
   }));
 
-  const handleEventClick = (info: any) => {
-    setSelectedEvent(info.event);
-  };
 
-  const handleDateClick = (info: any) => {
-    console.log('Data seleccionada:', info.dateStr);
-  };
 
   const openReminderModal = () => {
     setReminderForm({
@@ -57,52 +58,24 @@ const CalendarPage: React.FC = () => {
       itemName: '',
       intervalWeeks: 2
     });
-    setSelectedSupermarket(null);
     setShowReminderModal(true);
   };
 
+  const closeReminderModal = () => {
+    setShowReminderModal(false);
+  };
+
   const handleCreateReminder = async () => {
-    if (!reminderForm.itemName || !reminderForm.listId) {
-      alert('Sisplau, emplena tots els camps');
+    if (!reminderForm.itemName.trim()) {
       return;
     }
 
-    try {
-      await createReminder(
-        reminderForm.listId,
-        reminderForm.itemName,
-        reminderForm.intervalWeeks,
-        new Date(),
-        selectedSupermarket ? {
-          id: selectedSupermarket.id,
-          name: selectedSupermarket.name,
-          chain: selectedSupermarket.chain
-        } : undefined
-      );
-      setShowReminderModal(false);
-      setReminderForm({ listId: '', itemName: '', intervalWeeks: 2 });
-      setSelectedSupermarket(null);
-    } catch (error) {
-      console.error('Error creant recordatori:', error);
-      alert('Error creant el recordatori');
-    }
-  };
-
-  const getEventTypeLabel = (type: string) => {
-    switch (type) {
-      case 'product_added': return 'Producte afegit';
-      case 'purchase_completed': return 'Compra realitzada';
-      case 'reminder': return 'Recordatori';
-      default: return type;
-    }
-  };
-
-  const getIntervalLabel = (weeks: number) => {
-    if (weeks === 1) return '1 setmana';
-    if (weeks === 2) return '2 setmanes';
-    if (weeks === 4) return '1 mes';
-    if (weeks === 8) return '2 mesos';
-    return `${weeks} setmanes`;
+    await createReminder(
+      reminderForm.listId,
+      reminderForm.itemName,
+      reminderForm.intervalWeeks
+    );
+    closeReminderModal();
   };
 
   // AHORA SÍ, DESPUÉS DE TODOS LOS HOOKS, VERIFICAMOS SI HAY LISTA
@@ -111,7 +84,7 @@ const CalendarPage: React.FC = () => {
       <NoListSelected
         pageTitle="Calendari"
         pageIcon="📅"
-        description="Selecciona una llista per veure els esdeveniments del calendari, crear recordatoris i gestionar les compres programades."
+        description="Selecciona una llista per veure els esdeveniments i recordatoris"
       />
     );
   }
@@ -119,29 +92,15 @@ const CalendarPage: React.FC = () => {
   return (
     <div className="calendar-page">
       <div className="calendar-header">
-        <h1>📅 Calendari de Compres</h1>
+        <h1>📅 Calendari - {currentList.name}</h1>
+        <p>Esdeveniments i recordatoris de la llista seleccionada</p>
         <div className="calendar-actions">
           <button 
-            className="btn-primary"
             onClick={openReminderModal}
+            className="create-reminder-btn"
           >
-            ⏰ Crear Recordatori
+            ➕ Crear Recordatori
           </button>
-        </div>
-      </div>
-
-      <div className="calendar-legend">
-        <div className="legend-item">
-          <span className="legend-color" style={{ backgroundColor: '#e3f2fd', borderColor: '#2196f3' }}></span>
-          <span>Producte afegit</span>
-        </div>
-        <div className="legend-item">
-          <span className="legend-color" style={{ backgroundColor: '#e8f5e8', borderColor: '#4caf50' }}></span>
-          <span>Compra realitzada</span>
-        </div>
-        <div className="legend-item">
-          <span className="legend-color" style={{ backgroundColor: '#fff3e0', borderColor: '#ff9800' }}></span>
-          <span>Recordatori</span>
         </div>
       </div>
 
@@ -155,8 +114,6 @@ const CalendarPage: React.FC = () => {
             right: ''
           }}
           events={calendarEvents}
-          dateClick={handleDateClick}
-          eventClick={handleEventClick}
           height="auto"
           locale="ca"
           firstDay={1}
@@ -166,84 +123,73 @@ const CalendarPage: React.FC = () => {
         />
       </div>
 
-      {/* Sidebar amb informació d'esdeveniments */}
-      <div className="calendar-sidebar">
+      {/* Sección de recordatorios activos filtrados por lista */}
+      <div className="reminders-section">
         <h3>Recordatoris Actius</h3>
         <div className="reminders-list">
-          {reminders.map(reminder => (
+          {filteredReminders.map(reminder => (
             <div key={reminder.id} className="reminder-item">
               <div className="reminder-info">
-                <strong>{reminder.itemName}</strong>
-                <p>Cada {getIntervalLabel(reminder.intervalWeeks)}</p>
-                <p>Proper: {reminder.reminderDate.toLocaleDateString('ca-ES')}</p>
+                <h4>{reminder.itemName}</h4>
+                <p>Cada {reminder.intervalWeeks} setmanes</p>
+                <p>Proper recordatori: {new Date(reminder.reminderDate).toLocaleDateString('ca-ES')}</p>
                 {reminder.supermarket && (
-                  <p>🏪 {reminder.supermarket.name}</p>
+                  <p>Supermercat: {reminder.supermarket.name}</p>
                 )}
               </div>
               <button 
-                className="btn-danger-small"
                 onClick={() => deleteReminder(reminder.id)}
+                className="delete-reminder-btn"
               >
                 🗑️
               </button>
             </div>
           ))}
-          {reminders.length === 0 && (
-            <p className="no-reminders">No tens recordatoris actius</p>
+          {filteredReminders.length === 0 && (
+            <p className="no-reminders">No tens recordatoris actius per aquesta llista</p>
           )}
         </div>
       </div>
 
-      {/* Modal per crear recordatoris */}
+      {/* Modal para crear recordatorios */}
       {showReminderModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>⏰ Crear Recordatori</h3>
-            
+        <div className="modal-overlay" onClick={closeReminderModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Crear Recordatori</h3>
             <div className="form-group">
               <label>Nom del producte:</label>
-              <input 
+              <input
                 type="text"
                 value={reminderForm.itemName}
-                onChange={(e) => setReminderForm(prev => ({ ...prev, itemName: e.target.value }))}
-                placeholder="Ex: Llet, Pà, Fruita..."
+                onChange={(e) => setReminderForm(prev => ({
+                  ...prev,
+                  itemName: e.target.value
+                }))}
+                placeholder="Ex: Llet, Pa, etc."
               />
             </div>
-
             <div className="form-group">
-              <label>Recordar cada:</label>
-              <select 
+              <label>Recordar cada (setmanes):</label>
+              <select
                 value={reminderForm.intervalWeeks}
-                onChange={(e) => setReminderForm(prev => ({ ...prev, intervalWeeks: parseInt(e.target.value) }))}
+                onChange={(e) => setReminderForm(prev => ({
+                  ...prev,
+                  intervalWeeks: parseInt(e.target.value)
+                }))}
               >
                 <option value={1}>1 setmana</option>
                 <option value={2}>2 setmanes</option>
+                <option value={3}>3 setmanes</option>
                 <option value={4}>1 mes</option>
                 <option value={8}>2 mesos</option>
               </select>
             </div>
 
-            <div className="form-group">
-              <label>Supermercat (opcional):</label>
-              <SupermarketSelector
-                postalCode={currentList?.postalCode}
-                selectedSupermarket={selectedSupermarket}
-                onSupermarketSelect={setSelectedSupermarket}
-                placeholder="🏪 Seleccionar supermercat per al recordatori"
-              />
-            </div>
-
             <div className="modal-actions">
-              <button 
-                className="btn-secondary"
-                onClick={() => setShowReminderModal(false)}
-              >
+              <button onClick={closeReminderModal} className="cancel-btn">
                 Cancel·lar
               </button>
-              <button 
-                className="btn-primary"
-                onClick={handleCreateReminder}
-              >
+              <button onClick={handleCreateReminder} className="confirm-btn">
                 Crear Recordatori
               </button>
             </div>
@@ -251,30 +197,7 @@ const CalendarPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal d'informació d'esdeveniments */}
-      {selectedEvent && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>📅 Detalls de l'Esdeveniment</h3>
-            <div className="event-details">
-              <p><strong>Tipus:</strong> {getEventTypeLabel(selectedEvent.extendedProps.type)}</p>
-              <p><strong>Llista:</strong> {selectedEvent.extendedProps.listName}</p>
-              {selectedEvent.extendedProps.itemName && (
-                <p><strong>Producte:</strong> {selectedEvent.extendedProps.itemName}</p>
-              )}
-              <p><strong>Data:</strong> {new Date(selectedEvent.start).toLocaleDateString('ca-ES')}</p>
-            </div>
-            <div className="modal-actions">
-              <button 
-                className="btn-primary"
-                onClick={() => setSelectedEvent(null)}
-              >
-                Tancar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

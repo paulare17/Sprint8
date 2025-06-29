@@ -37,15 +37,11 @@
   --color-border-medium: #ddd;    /* Border gris mig */
   --color-border-dark: #dee2e6;   /* Border gris fosc */
   
-  /* Variables per estats (success, warning, danger) */
+  /* Variables per estats (success, danger) */
   --color-success: #28a745;       /* Verd èxit */
   --color-success-dark: #155724;  /* Verd fosc */
   --color-success-bg: #d4edda;    /* Fons verd clar */
   --color-success-bg-light: #e8f5e8; /* Fons verd molt clar */
-  
-  --color-warning: #ffc107;       /* Groc advertència */
-  --color-warning-dark: #f59e0b;  /* Groc fosc */
-  --color-warning-bg: #fff3e0;    /* Fons groc clar */
   
   --color-danger: #dc3545;        /* Vermell perill */
   --color-danger-dark: #c82333;   /* Vermell fosc */
@@ -92,15 +88,15 @@ body {
   width: 100%;
   margin: 0 auto;
   padding: 2rem;
-  padding-bottom: 4rem;     /* 👈 Afegir padding extra al final */
+  padding-bottom: 4rem;    
   text-align: center;
   box-sizing: border-box;
-  min-height: calc(100vh - 80px); /* 👈 Altura mínima menys navbar */
-  height: auto;             /* 👈 Altura automàtica */
+  min-height: calc(100vh - 80px); 
+  height: auto;             
   position: relative;
 }
 
-/* 🔧 Assegurar que tots els containers principals tinguin scroll */
+/*  tots els containers principals tinguin scroll */
 .calendar-page,
 .analytics-page,
 .user-page,
@@ -146,7 +142,7 @@ button:focus-visible {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  padding-bottom: 40px;     /* 👈 Espai extra al final */
+  padding-bottom: 40px;     
 }
 
 .analytics-summary {
@@ -252,7 +248,7 @@ button:focus-visible {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  padding-bottom: 40px;     /* 👈 Espai extra al final */
+  padding-bottom: 40px;     
 }
 
 .analytics-page-header {
@@ -388,7 +384,7 @@ button:focus-visible {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  padding-bottom: 40px;     /* 👈 Espai extra al final */
+  padding-bottom: 40px;     
   min-height: auto;
 }
 
@@ -397,7 +393,7 @@ button:focus-visible {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  padding-bottom: 40px;     /* 👈 Espai extra al final */
+  padding-bottom: 40px;     
 }
 
 /* 📋 Todo container */
@@ -406,16 +402,16 @@ button:focus-visible {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  padding-bottom: 40px;     /* 👈 Espai extra al final */
+  padding-bottom: 40px;     
 }
 
 /* 🔧 Eliminar restriccions d'altura en modals i dropdowns */
 .modal-overlay {
-  overflow-y: auto;         /* 👈 Permetre scroll en modals */
+  overflow-y: auto;         
 }
 
 .modal-content {
-  max-height: 90vh;         /* 👈 Màxim 90% de l'altura de pantalla */
-  overflow-y: auto;         /* 👈 Scroll intern si cal */
-  margin: 20px;             /* 👈 Marge per evitar tocar els bordes */
+  max-height: 90vh;         
+  overflow-y: auto;         
+  margin: 20px;             
 }

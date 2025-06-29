@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
@@ -7,6 +8,7 @@ interface LoginFormProps {
 
 function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const { login } = useAuth();
+  const navigate = useNavigate();
   
   const [loginData, setLoginData] = useState({
     email: '',
@@ -39,9 +41,8 @@ function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     
     try {
       await login(loginData.email, loginData.password);
-      // L'usuari serà redirigit automàticament gràcies a AuthContext
+      navigate('/');
     } catch (error: any) {
-      console.error('Error logging in:', error);
       setErrors([error.message || 'Error en iniciar sessió']);
     } finally {
       setIsLoading(false);

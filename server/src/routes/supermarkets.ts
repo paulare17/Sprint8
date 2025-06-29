@@ -7,31 +7,26 @@ const router = express.Router();
 router.get('/postal/:postalCode', async (req, res) => {
   try {
     const { postalCode } = req.params;
-    const { forceRefresh } = req.query;
+    const forceRefresh = req.query.forceRefresh === 'true';
     
-    console.log(`📋 API: Petició per supermercats del codi postal ${postalCode}`);
-    
-    if (!postalCode || postalCode.length !== 5) {
+    // Validar format del codi postal
+    if (!postalCode || !/^[0-9]{5}$/.test(postalCode)) {
       return res.status(400).json({
-        error: 'Codi postal no vàlid. Ha de tenir 5 dígits.'
+        error: 'Format de codi postal invàlid. Ha de ser 5 dígits (ex: 08001)'
       });
     }
 
-    const supermarkets = await supermarketService.getSupermarketsByPostalCode(
-      postalCode, 
-      forceRefresh === 'true'
-    );
-
+    const supermarkets = await supermarketService.getSupermarketsByPostalCode(postalCode, forceRefresh);
+    
     res.json({
       success: true,
-      data: supermarkets,
       total: supermarkets.length,
+      data: supermarkets,
       postalCode,
-      fromCache: forceRefresh !== 'true'
+      cached: !forceRefresh
     });
-
+    
   } catch (error) {
-    console.error('❌ Error API supermercats per codi postal:', error);
     res.status(500).json({
       error: 'Error obtenint supermercats',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -44,11 +39,9 @@ router.get('/nearby', async (req, res) => {
   try {
     const { lng, lat, maxDistance } = req.query;
     
-    console.log(`📍 API: Petició supermercats propers a [${lng}, ${lat}]`);
-    
     if (!lng || !lat) {
       return res.status(400).json({
-        error: 'Coordenades lng i lat són obligatòries'
+        error: 'Coordenades obligatòries: lng i lat'
       });
     }
 
@@ -58,26 +51,21 @@ router.get('/nearby', async (req, res) => {
 
     if (isNaN(longitude) || isNaN(latitude)) {
       return res.status(400).json({
-        error: 'Coordenades no vàlides'
+        error: 'Coordenades han de ser números vàlids'
       });
     }
 
-    const supermarkets = await supermarketService.getSupermarketsNearby(
-      longitude, 
-      latitude, 
-      distance
-    );
-
+    const supermarkets = await supermarketService.getSupermarketsNearby(longitude, latitude, distance);
+    
     res.json({
       success: true,
-      data: supermarkets,
       total: supermarkets.length,
+      data: supermarkets,
       coordinates: { lng: longitude, lat: latitude },
       maxDistance: distance
     });
-
+    
   } catch (error) {
-    console.error('❌ Error API supermercats propers:', error);
     res.status(500).json({
       error: 'Error obtenint supermercats propers',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -89,8 +77,6 @@ router.get('/nearby', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, address, postalCode, chain, lng, lat } = req.body;
-    
-    console.log(`➕ API: Afegir supermercat manual: ${name}`);
     
     if (!name || !address || !postalCode || !lng || !lat) {
       return res.status(400).json({
@@ -118,7 +104,6 @@ router.post('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error API afegir supermercat:', error);
     res.status(500).json({
       error: 'Error afegint supermercat',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -126,25 +111,17 @@ router.post('/', async (req, res) => {
   }
 });
 
-
-
-
-
 // 📈 GET /api/supermarkets/stats - Obtenir estadístiques globals
 router.get('/stats', async (req, res) => {
   try {
-    console.log('📈 API: Petició estadístiques globals');
-    
     const stats = await supermarketService.getSupermarketStats();
-
+    
     res.json({
       success: true,
-      data: stats,
-      timestamp: new Date().toISOString()
+      data: stats
     });
-
+    
   } catch (error) {
-    console.error('❌ Error API estadístiques:', error);
     res.status(500).json({
       error: 'Error obtenint estadístiques',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -157,29 +134,23 @@ router.post('/refresh/:postalCode', async (req, res) => {
   try {
     const { postalCode } = req.params;
     
-    console.log(`🔄 API: Forçar actualització cache per ${postalCode}`);
-    
-    if (!postalCode || postalCode.length !== 5) {
+    if (!postalCode || !/^[0-9]{5}$/.test(postalCode)) {
       return res.status(400).json({
-        error: 'Codi postal no vàlid. Ha de tenir 5 dígits.'
+        error: 'Format de codi postal invàlid'
       });
     }
 
-    const supermarkets = await supermarketService.getSupermarketsByPostalCode(
-      postalCode, 
-      true // Forçar refresh
-    );
-
+    const supermarkets = await supermarketService.getSupermarketsByPostalCode(postalCode, true);
+    
     res.json({
       success: true,
-      data: supermarkets,
       total: supermarkets.length,
+      data: supermarkets,
       postalCode,
-      message: 'Cache actualitzat correctament'
+      refreshed: true
     });
-
+    
   } catch (error) {
-    console.error('❌ Error API refresh cache:', error);
     res.status(500).json({
       error: 'Error actualitzant cache',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -192,46 +163,38 @@ router.get('/search', async (req, res) => {
   try {
     const { q, postalCode } = req.query;
     
-    console.log(`🔍 API: Buscar supermercats: "${q}"`);
-    
-    if (!q) {
+    if (!q || typeof q !== 'string') {
       return res.status(400).json({
-        error: 'Paràmetre de cerca "q" obligatori'
+        error: 'Paràmetre de cerca "q" és obligatori'
       });
     }
 
-    // Crear query de cerca amb regex
-    const searchQuery: any = {
+    // Buscar per nom, adreça i cadena
+    const query: any = {
       $or: [
         { name: { $regex: q, $options: 'i' } },
-        { chain: { $regex: q, $options: 'i' } },
-        { address: { $regex: q, $options: 'i' } }
+        { address: { $regex: q, $options: 'i' } },
+        { chain: { $regex: q, $options: 'i' } }
       ]
     };
 
-    // Filtrar per codi postal si es proporciona
-    if (postalCode) {
-      searchQuery.postalCode = postalCode;
+    if (postalCode && typeof postalCode === 'string') {
+      query.postalCode = postalCode;
     }
 
-    // Buscar a MongoDB
-    const { Supermarket } = await import('../models/Supermarket');
-    const supermarkets = await Supermarket.find(searchQuery)
-      .limit(20)
-      .sort({ lastUpdated: -1, name: 1 });
-
+    const supermarkets = await Supermarket.find(query).limit(20);
+    
     res.json({
       success: true,
-      data: supermarkets,
       total: supermarkets.length,
+      data: supermarkets,
       query: q,
-      postalCode
+      postalCode: postalCode || null
     });
-
+    
   } catch (error) {
-    console.error('❌ Error API buscar supermercats:', error);
     res.status(500).json({
-      error: 'Error buscant supermercats',
+      error: 'Error cercant supermercats',
       details: error instanceof Error ? error.message : 'Error desconegut'
     });
   }

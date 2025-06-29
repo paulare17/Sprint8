@@ -7,7 +7,6 @@ import ListsPage from './pages/ListsPage';
 import RegisterPage from './pages/RegisterPage';
 import MapPage from './pages/MapPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import FirebaseErrorHandler from './components/FirebaseErrorHandler';
 import { ShoppingListProvider } from './contexts/ShoppingListContext';
 import { CalendarProvider } from './contexts/CalendarContext';
 import CalendarPage from './pages/CalendarPage';
@@ -19,7 +18,6 @@ function App() {
 
   return (
     <BrowserRouter>
-      <FirebaseErrorHandler />
       <ShoppingListProvider>
         <CalendarProvider>
           <Navbar/>

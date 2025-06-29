@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShoppingList } from '../contexts/ShoppingListContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import CreateListForm from '../components/CreateListForm';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
@@ -21,9 +21,9 @@ const ListsPage: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showJoinForm, setShowJoinForm] = useState(false);
   const [joinListId, setJoinListId] = useState('');
-  const [joinError, setJoinError] = useState('');
 
-  const handleCreateList = (_listId: string) => {
+
+  const handleCreateList = () => {
     setShowCreateForm(false);
     navigate('/pendents'); // Redirigir a la pàgina de pendents
   };
@@ -32,24 +32,12 @@ const ListsPage: React.FC = () => {
     e.preventDefault();
     
     if (!joinListId.trim()) {
-      setJoinError('Introdueix un ID de llista vàlid');
       return;
     }
 
-    try {
-      setJoinError('');
-      const success = await joinList(joinListId.trim().toUpperCase());
-      
-      if (success) {
-        setShowJoinForm(false);
-        setJoinListId('');
-        // Redirigir a la llista o mostrar missatge d'èxit
-      } else {
-        setJoinError('Llista no trobada. Verifica l\'ID de la llista.');
-      }
-    } catch (error) {
-      setJoinError('Error al unir-se a la llista. Torna-ho a intentar.');
-    }
+    await joinList(joinListId.trim().toUpperCase());
+    setShowJoinForm(false);
+    setJoinListId('');
   };
 
   const handleSwitchToList = (listId: string) => {
@@ -70,14 +58,7 @@ const ListsPage: React.FC = () => {
       return;
     }
 
-    try {
-      await deleteList(listId);
-      alert('Llista eliminada correctament');
-    } catch (error) {
-      console.error('Error eliminant llista:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error eliminant la llista';
-      alert(`Error eliminant la llista: ${errorMessage}`);
-    }
+    await deleteList(listId);
   };
 
   const formatDate = (date: Date) => {
@@ -142,17 +123,12 @@ const ListsPage: React.FC = () => {
               </small>
             </div>
             
-            {joinError && (
-              <div className="error-message">{joinError}</div>
-            )}
-            
             <div className="form-actions">
               <button 
                 type="button" 
                 onClick={() => {
                   setShowJoinForm(false);
                   setJoinListId('');
-                  setJoinError('');
                 }}
                 className="btn-secondary"
               >

@@ -29,14 +29,11 @@ const SupermarketSelector: React.FC<SupermarketSelectorProps> = ({
         return;
       }
 
-      console.log(`🔍 Carregant supermercats per codi postal: ${postalCode}`);
       setIsLoading(true);
       try {
         const results = await supermarketService.getAllNearbySupermarkets(postalCode);
-        console.log(`✅ Supermercats carregats: ${results.length}`);
         setSupermarkets(results);
-      } catch (error) {
-        console.error("❌ Error loading supermarkets:", error);
+      } catch {
         setSupermarkets([]);
       } finally {
         setIsLoading(false);
@@ -47,14 +44,12 @@ const SupermarketSelector: React.FC<SupermarketSelectorProps> = ({
   }, [postalCode]);
 
   const handleSupermarketSelect = (supermarket: Supermarket | null) => {
-    console.log('🏪 Supermercat seleccionat:', supermarket?.name || 'Cap');
     onSupermarketSelect(supermarket);
     setShowDropdown(false);
   };
 
   const toggleDropdown = () => {
     if (disabled) return;
-    console.log('📋 Toggle dropdown:', !showDropdown);
     setShowDropdown(!showDropdown);
   };
 
@@ -122,7 +117,6 @@ const SupermarketSelector: React.FC<SupermarketSelectorProps> = ({
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('🚫 Netejant selecció de supermercat');
                   handleSupermarketSelect(null);
                 }}
                 style={{ 
@@ -141,7 +135,6 @@ const SupermarketSelector: React.FC<SupermarketSelectorProps> = ({
                   className="supermarket-item"
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    console.log('🏪 Clicked supermarket:', supermarket.name);
                     handleSupermarketSelect(supermarket);
                   }}
                   style={{ 

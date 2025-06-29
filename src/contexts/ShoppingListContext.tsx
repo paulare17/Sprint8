@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { ShoppingList, ToDoItem } from '../components/types';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { 
   collection, 
   doc, 
@@ -63,7 +63,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
       return;
     }
 
-    console.log('🔥 Setting up Firestore listener for user lists...');
+
     
     let unsubscribe: (() => void) | null = null;
 
@@ -95,7 +95,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
               lists.push(list);
             });
 
-            console.log(`✅ Loaded ${lists.length} lists from Firestore`);
+
             setUserLists(lists);
 
             // Restaurar la llista seleccionada si existeix al localStorage
@@ -112,7 +112,6 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
               if (savedSelectedListId) {
                 const savedList = lists.find(list => list.id === savedSelectedListId);
                 if (savedList) {
-                  console.log(`🔄 Restaurant llista seleccionada: ${savedList.name}`);
                   return savedList;
                 }
               }
@@ -120,21 +119,18 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
               return prevCurrentList;
             });
           },
-          (error) => {
-            console.error('❌ Error in Firestore listener:', error);
+          () => {
             // Fallback a localStorage si Firestore falla
             loadUserListsFromLocalStorage();
           }
         );
-      } catch (error) {
-        console.error('❌ Error setting up Firestore listener:', error);
+      } catch {
         // Fallback a localStorage si Firestore falla
         loadUserListsFromLocalStorage();
       }
     };
 
     const loadUserListsFromLocalStorage = () => {
-      console.log('⚠️ Falling back to localStorage...');
       try {
         const savedLists = localStorage.getItem('shoppingLists');
         const allLists: ShoppingList[] = savedLists ? JSON.parse(savedLists) : [];
@@ -150,14 +146,12 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         if (savedSelectedListId) {
           const savedList = userAccessibleLists.find(list => list.id === savedSelectedListId);
           if (savedList) {
-            console.log(`🔄 Restaurant llista seleccionada (localStorage): ${savedList.name}`);
             setCurrentList(savedList);
           }
         }
-      } catch (error) {
-        console.error('Error loading from localStorage:', error);
-        setUserLists([]);
-      }
+              } catch {
+          setUserLists([]);
+        }
     };
 
     setupFirestoreListener();
@@ -165,7 +159,6 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
     // Cleanup function
     return () => {
       if (unsubscribe) {
-        console.log('🔄 Cleaning up Firestore listener...');
         unsubscribe();
       }
     };
@@ -188,8 +181,8 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
       });
       
       localStorage.setItem('shoppingLists', JSON.stringify(allLists));
-    } catch (error) {
-      console.error('Error saving lists to storage:', error);
+    } catch {
+      // Ignorar errors de localStorage
     }
   };
 
@@ -212,12 +205,8 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         isActive: true
       };
 
-      console.log('🔥 Creating new list in Firestore:', listId);
-      
       // Guardar a Firestore amb ID específic
       await setDoc(doc(db, 'shoppingLists', listId), newListData);
-      
-      console.log('✅ List created successfully in Firestore');
       
       // El listener automàticament actualitzarà userLists
       // Però podem crear l'objecte local per seleccionar-lo immediatament
@@ -230,12 +219,9 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
       setCurrentList(newList);
       // Guardar la nova llista com a seleccionada al localStorage
       localStorage.setItem('selectedListId', listId);
-      console.log(`💾 Nova llista creada i seleccionada: ${newList.name} (${listId})`);
       
       return listId;
     } catch (error) {
-      console.error('❌ Error creating new list:', error);
-      
       // Fallback a localStorage si Firestore falla
       try {
         const newList: ShoppingList = {
@@ -258,10 +244,8 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         // Guardar la nova llista com a seleccionada al localStorage
         localStorage.setItem('selectedListId', newList.id);
         
-        console.log('⚠️ List created in localStorage as fallback');
         return newList.id;
-      } catch (fallbackError) {
-        console.error('❌ Fallback also failed:', fallbackError);
+      } catch {
         throw error;
       }
     } finally {
@@ -275,7 +259,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
       throw new Error('User not authenticated');
     }
 
-    console.log('🔍 Attempting to join list:', listId);
+
     setIsLoading(true);
 
     try {
@@ -284,8 +268,6 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
       const listSnap = await getDoc(listRef);
       
       if (!listSnap.exists()) {
-        console.warn('❌ List not found in Firestore:', listId);
-        
         // Fallback: buscar a localStorage
         try {
           const savedLists = localStorage.getItem('shoppingLists');
@@ -306,20 +288,16 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
           setUserLists(updatedLists);
           saveListsToStorage([listToJoin]);
           
-          console.log('✅ Joined list via localStorage fallback');
           return true;
-        } catch (fallbackError) {
-          console.error('❌ Fallback failed:', fallbackError);
+        } catch {
           return false;
         }
       }
 
       const listData = listSnap.data();
-      console.log('✅ List found in Firestore:', listData.name);
 
       // Verificar si l'usuari ja és membre
       if (listData.members && listData.members.includes(userProfile.email)) {
-        console.log('ℹ️ User is already a member of this list');
         return true;
       }
 
@@ -328,11 +306,9 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         members: arrayUnion(userProfile.email)
       });
 
-      console.log('✅ Successfully joined list in Firestore');
       return true;
 
-    } catch (error) {
-      console.error('❌ Error joining list:', error);
+    } catch {
       return false;
     } finally {
       setIsLoading(false);
@@ -353,7 +329,6 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
       setCurrentList(list);
       // Guardar l'ID de la llista seleccionada al localStorage
       localStorage.setItem('selectedListId', listId);
-      console.log(`💾 Llista seleccionada guardada: ${list.name} (${listId})`);
     }
   };
 
@@ -388,12 +363,9 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         await updateDoc(listRef, {
           items: arrayUnion(newItem)
         });
-        console.log('✅ Item synced to Firestore successfully');
-      } catch (error) {
-        console.error('❌ Error syncing item to Firestore:', error);
+      } catch {
         // Guardar localment com a fallback
         saveListsToStorage([updatedList]);
-        console.log('⚠️ Item saved locally as fallback');
       }
     };
 
@@ -449,13 +421,10 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
             items: updatedFirestoreItems
           });
           
-          console.log(`✅ Item ${updatedItem.done ? 'marked as completed' : 'unmarked'} in Firestore`);
         }
-      } catch (error) {
-        console.error('❌ Error Firestore:', error);
+      } catch {
         // Guardar localment com a fallback
         saveListsToStorage([updatedList]);
-        console.log('⚠️ Toggle saved locally as fallback');
       }
     };
 
@@ -507,10 +476,9 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         await updateDoc(listRef, {
           members: arrayRemove(userProfile.email)
         });
-        console.log('✅ User removed from list in Firestore');
       }
-    } catch (error) {
-      console.error('❌ Error leaving list in Firestore:', error);
+    } catch {
+      // Ignorar errores de Firestore
     }
 
     // Actualitzar estat local
@@ -534,8 +502,8 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         );
         localStorage.setItem('shoppingLists', JSON.stringify(allLists));
       }
-    } catch (error) {
-      console.error('Error leaving list:', error);
+    } catch {
+      // Ignorar errores de localStorage
     }
   };
 
@@ -562,7 +530,6 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
       if (FIREBASE_ENABLED) {
         const listRef = doc(db, 'shoppingLists', listId);
         await deleteDoc(listRef);
-        console.log('✅ List deleted from Firestore');
       }
 
       // Actualitzar estat local
@@ -580,16 +547,12 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
         const allLists: ShoppingList[] = savedLists ? JSON.parse(savedLists) : [];
         const filteredLists = allLists.filter(list => list.id !== listId);
         localStorage.setItem('shoppingLists', JSON.stringify(filteredLists));
-      } catch (localError) {
-        console.warn('Error removing from localStorage:', localError);
+      } catch {
+        // Ignorar errores de localStorage
       }
 
-      console.log(`✅ Llista "${listToDelete.name}" eliminada correctament`);
       return true;
 
-    } catch (error) {
-      console.error('❌ Error deleting list:', error);
-      throw error;
     } finally {
       setIsLoading(false);
     }

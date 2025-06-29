@@ -42,6 +42,26 @@ interface GeoapifyResponse {
   features?: GeoapifyFeature[];
 }
 
+interface MongoSupermarket {
+  _id?: string;
+  id?: string;
+  name: string;
+  address: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  location?: {
+    coordinates: [number, number];
+  };
+  distance?: number;
+  rating?: number;
+  chain?: string;
+  postalCode?: string;
+  source?: string;
+  lastUpdated?: Date;
+}
+
 class SupermarketService {
   private readonly mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
   private readonly geoapifyKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
@@ -50,23 +70,16 @@ class SupermarketService {
 
 
   private async getCoordinatesFromPostalCode(postalCode: string): Promise<[number, number] | null> {
-    // Usar Geoapify com a API principal
     if (!this.geoapifyKey) {
       throw new Error('Clau API de Geoapify no configurada. Afegeix VITE_GEOAPIFY_API_KEY al fitxer .env');
     }
 
-    try {
-      const coordinates = await this.getCoordinatesFromGeoapify(postalCode);
-      if (coordinates) {
-        console.log(`✅ Coordenades obtingudes amb Geoapify: [${coordinates[0]}, ${coordinates[1]}]`);
-        return coordinates;
-      }
-      
-      throw new Error(`No s'han pogut obtenir coordenades per al codi postal: ${postalCode}`);
-    } catch (error) {
-      console.error('Error obtaining coordinates:', error);
-      throw error;
+    const coordinates = await this.getCoordinatesFromGeoapify(postalCode);
+    if (coordinates) {
+      return coordinates;
     }
+    
+    throw new Error(`No s'han pogut obtenir coordenades per al codi postal: ${postalCode}`);
   }
 
   private async getCoordinatesFromGeoapify(postalCode: string): Promise<[number, number] | null> {
@@ -90,8 +103,7 @@ class SupermarketService {
       }
       
       return null;
-    } catch (error) {
-      console.error('Error with Geoapify geocoding:', error);
+    } catch {
       return null;
     }
   }
@@ -102,31 +114,25 @@ class SupermarketService {
 
   async getAllNearbySupermarkets(postalCode: string): Promise<Supermarket[]> {
     try {
-      console.log(`🌍 Obtenint supermercats per codi postal: ${postalCode} des del backend MongoDB`);
-      
       // 1. Primer intentar obtenir del nostre backend MongoDB
       const response = await fetch(`${this.backendUrl}/api/supermarkets/postal/${postalCode}`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ Rebuts ${data.total} supermercats del backend MongoDB`);
         
         // Convertir format MongoDB al format frontend
-        const supermarkets = data.data.map((s: any) => this.convertMongoToFrontend(s));
+        const supermarkets = data.data.map((s: unknown) => this.convertMongoToFrontend(s));
         return supermarkets.sort((a: Supermarket, b: Supermarket) => (a.distance || 0) - (b.distance || 0));
       }
       
       // 2. Si el backend falla, fallback al mètode original (Geoapify directe)
-      console.warn('⚠️ Backend no disponible, utilitzant fallback a Geoapify directe');
       return await this.fallbackToDirectApi(postalCode);
       
-    } catch (error) {
-      console.error('❌ Error getting nearby supermarkets:', error);
+    } catch {
       // 3. En cas d'error, intentar fallback
       try {
         return await this.fallbackToDirectApi(postalCode);
-      } catch (fallbackError) {
-        console.error('❌ Fallback també ha fallat:', fallbackError);
+      } catch {
         return [];
       }
     }
@@ -139,30 +145,19 @@ class SupermarketService {
     if (!this.geoapifyKey) {
       throw new Error('Clau API de Geoapify no configurada. Afegeix VITE_GEOAPIFY_API_KEY al fitxer .env');
     }
-
-    console.log(`🔑 Utilitzant Geoapify per cercar supermercats...`);
     
-    try {
-      const geoapifyResults = await this.searchWithGeoapify(coordinates);
-      console.log(`🌍 Geoapify trobat: ${geoapifyResults.length} supermercats`);
-      
-      if (geoapifyResults.length === 0) {
-        throw new Error('No s\'han trobat supermercats a la zona especificada');
-      }
-
-      // Eliminar duplicats basats en coordenades similars
-      const uniqueSupermarkets = this.removeDuplicateSupermarkets(geoapifyResults);
-      
-      console.log(`🧹 Després d'eliminar duplicats: ${uniqueSupermarkets.length} supermercats únics`);
-      
-      const finalResults = uniqueSupermarkets.slice(0, 30); // Limitar a 15 resultats
-      console.log(`📋 Resultat final: ${finalResults.length} supermercats per retornar`);
-      
-      return finalResults;
-    } catch (error) {
-      console.error('❌ Error cercant supermercats:', error);
-      throw error;
+    const geoapifyResults = await this.searchWithGeoapify(coordinates);
+    
+    if (geoapifyResults.length === 0) {
+      throw new Error('No s\'han trobat supermercats a la zona especificada');
     }
+
+    // Eliminar duplicats basats en coordenades similars
+    const uniqueSupermarkets = this.removeDuplicateSupermarkets(geoapifyResults);
+    
+    const finalResults = uniqueSupermarkets.slice(0, 30); // Limitar a 15 resultats
+    
+    return finalResults;
   }
 
 
@@ -185,7 +180,6 @@ class SupermarketService {
         const response = await fetch(url);
         
         if (!response.ok) {
-          console.warn(`Geoapify request failed for category ${category}:`, response.status);
           continue;
         }
 
@@ -215,8 +209,8 @@ class SupermarketService {
             }
           }
         }
-      } catch (error) {
-        console.warn(`Error searching Geoapify category ${category}:`, error);
+      } catch {
+        // Ignorar errors en categories específiques
       }
     }
 
@@ -280,92 +274,71 @@ class SupermarketService {
   }
 
   // 🔄 Convertir format MongoDB al format frontend
-  private convertMongoToFrontend(mongoSupermarket: any): Supermarket {
+  private convertMongoToFrontend(mongoSupermarket: unknown): Supermarket {
+    const mongo = mongoSupermarket as MongoSupermarket;
     return {
-      id: mongoSupermarket._id || mongoSupermarket.id,
-      _id: mongoSupermarket._id,
-      name: mongoSupermarket.name,
-      address: mongoSupermarket.address,
-      coordinates: {
-        lat: mongoSupermarket.location.coordinates[1], // MongoDB usa [lng, lat]
-        lng: mongoSupermarket.location.coordinates[0]
+      id: mongo._id || mongo.id || '',
+      name: mongo.name || '',
+      address: mongo.address || '',
+      coordinates: mongo.coordinates || {
+        lat: mongo.location?.coordinates[1] || 0,
+        lng: mongo.location?.coordinates[0] || 0
       },
-      distance: mongoSupermarket.distance,
-      chain: mongoSupermarket.chain,
-      postalCode: mongoSupermarket.postalCode,
-      source: mongoSupermarket.source,
-      lastUpdated: mongoSupermarket.lastUpdated ? new Date(mongoSupermarket.lastUpdated) : undefined
+      distance: mongo.distance,
+      rating: mongo.rating,
+      chain: mongo.chain,
+      postalCode: mongo.postalCode,
+      source: mongo.source as 'geoapify' | 'manual' | 'mapbox' | undefined,
+      lastUpdated: mongo.lastUpdated
     };
   }
 
   // 🔄 Fallback al mètode original (Geoapify directe)
   private async fallbackToDirectApi(postalCode: string): Promise<Supermarket[]> {
-    console.log(`🔄 Utilitzant fallback: cridar directament a Geoapify per ${postalCode}`);
-    
     const coordinates = await this.getCoordinatesFromPostalCode(postalCode);
-    
     if (!coordinates) {
-      console.error(`❌ No s'han pogut obtenir coordenades per al codi postal: ${postalCode}`);
-      throw new Error('Codi postal no vàlid');
+      throw new Error(`No s'han pogut obtenir coordenades per al codi postal: ${postalCode}`);
     }
-    
-    console.log(`📍 Coordenades obtingudes: [${coordinates[0]}, ${coordinates[1]}]`);
-    
-    // Obtenir supermercats reals de Geoapify
+
     const realSupermarkets = await this.searchRealSupermarkets(coordinates);
     
-    console.log(`✅ Total supermercats trobats amb fallback: ${realSupermarkets.length}`);
-    
-    return realSupermarkets.sort((a: Supermarket, b: Supermarket) => (a.distance || 0) - (b.distance || 0));
+    return realSupermarkets.slice(0, 20);
   }
 
   // 🔄 Forçar actualització del cache del backend
   async refreshSupermarketsCache(postalCode: string): Promise<Supermarket[]> {
-    try {
-      console.log(`🔄 Forçant actualització del cache per ${postalCode}`);
-      
-      const response = await fetch(`${this.backendUrl}/api/supermarkets/refresh/${postalCode}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`✅ Cache actualitzat: ${data.total} supermercats`);
-        
-        return data.data.map((s: any) => this.convertMongoToFrontend(s));
-      }
-      
-      throw new Error('Error actualitzant cache');
-    } catch (error) {
-      console.error('❌ Error forçant actualització cache:', error);
-      throw error;
+    const response = await fetch(`${this.backendUrl}/api/supermarkets/postal/${postalCode}?forceRefresh=true`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.data.map((s: unknown) => this.convertMongoToFrontend(s));
     }
+
+    throw new Error('Error actualitzant cache');
   }
 
   // ⭐ Actualitzar rating d'un supermercat
   async updateSupermarketRating(supermarketId: string, rating: number): Promise<boolean> {
     try {
-      console.log(`⭐ Actualitzant rating del supermercat ${supermarketId}: ${rating}`);
-      
       const response = await fetch(`${this.backendUrl}/api/supermarkets/${supermarketId}/rating`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ rating })
+        body: JSON.stringify({ rating }),
       });
-      
+
       if (response.ok) {
-        console.log(`✅ Rating actualitzat correctament`);
         return true;
       }
-      
+
       return false;
-    } catch (error) {
-      console.error('❌ Error actualitzant rating:', error);
+    } catch {
       return false;
     }
   }
@@ -373,23 +346,19 @@ class SupermarketService {
   // 📊 Registrar visita a un supermercat
   async recordSupermarketVisit(supermarketId: string): Promise<boolean> {
     try {
-      console.log(`📊 Registrant visita al supermercat ${supermarketId}`);
-      
       const response = await fetch(`${this.backendUrl}/api/supermarkets/${supermarketId}/visit`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
-      
+
       if (response.ok) {
-        console.log(`✅ Visita registrada correctament`);
         return true;
       }
-      
+
       return false;
-    } catch (error) {
-      console.error('❌ Error registrant visita:', error);
+    } catch {
       return false;
     }
   }
@@ -405,25 +374,21 @@ class SupermarketService {
     rating?: number;
   }): Promise<Supermarket | null> {
     try {
-      console.log(`🏪 Afegint supermercat manual: ${supermarketData.name}`);
-      
-      const response = await fetch(`${this.backendUrl}/api/supermarkets`, {
+      const response = await fetch(`${this.backendUrl}/api/supermarkets/manual`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(supermarketData)
+        body: JSON.stringify(supermarketData),
       });
-      
+
       if (response.ok) {
-        const data = await response.json();
-        console.log(`✅ Supermercat manual afegit correctament`);
-        return this.convertMongoToFrontend(data.data);
+        const data: MongoSupermarket = await response.json();
+        return this.convertMongoToFrontend(data);
       }
-      
+
       return null;
-    } catch (error) {
-      console.error('❌ Error afegint supermercat manual:', error);
+    } catch {
       return null;
     }
   }
@@ -431,46 +396,38 @@ class SupermarketService {
   // 🔍 Buscar supermercats per nom
   async searchSupermarkets(query: string, postalCode?: string): Promise<Supermarket[]> {
     try {
-      console.log(`🔍 Buscant supermercats: "${query}"`);
-      
-      const params = new URLSearchParams({ q: query });
+      const url = new URL(`${this.backendUrl}/api/supermarkets/search`);
+      url.searchParams.append('q', query);
       if (postalCode) {
-        params.append('postalCode', postalCode);
+        url.searchParams.append('postalCode', postalCode);
       }
-      
-      const response = await fetch(`${this.backendUrl}/api/supermarkets/search?${params}`);
+
+      const response = await fetch(url.toString());
       
       if (response.ok) {
-        const data = await response.json();
-        console.log(`✅ Trobats ${data.total} supermercats`);
-        
-        return data.data.map((s: any) => this.convertMongoToFrontend(s));
+        const data: { data: MongoSupermarket[] } = await response.json();
+        return data.data.map((s: MongoSupermarket) => this.convertMongoToFrontend(s));
       }
-      
+
       return [];
-    } catch (error) {
-      console.error('❌ Error buscant supermercats:', error);
+    } catch {
       return [];
     }
   }
 
   // 📈 Obtenir estadístiques dels supermercats
-  async getSupermarketStats(): Promise<any> {
+  async getSupermarketStats(): Promise<{ totalSupermarkets: number; chainDistribution: string[] }> {
     try {
-      console.log(`📈 Obtenint estadístiques dels supermercats`);
-      
       const response = await fetch(`${this.backendUrl}/api/supermarkets/stats`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ Estadístiques obtingudes`);
-        return data.data;
+        return data;
       }
-      
-      return null;
-    } catch (error) {
-      console.error('❌ Error obtenint estadístiques:', error);
-      return null;
+
+      return { totalSupermarkets: 0, chainDistribution: [] };
+    } catch {
+      return { totalSupermarkets: 0, chainDistribution: [] };
     }
   }
 }

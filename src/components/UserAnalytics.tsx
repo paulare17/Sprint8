@@ -11,7 +11,7 @@ import {
 } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { useShoppingList } from '../contexts/ShoppingListContext';
-import type { ToDoItem, ShoppingList } from './types';
+import type { ToDoItem } from './types';
 
 ChartJS.register(
   CategoryScale,
@@ -30,7 +30,7 @@ interface UserStats {
 }
 
 const UserAnalytics: React.FC = () => {
-  const { currentList, userLists } = useShoppingList();
+  const { currentList } = useShoppingList();
 
   // Procesar datos de todos los usuarios en la lista actual
   const userStats = useMemo((): UserStats => {
@@ -54,7 +54,7 @@ const UserAnalytics: React.FC = () => {
 
     // Contar productos añadidos por cada usuario
     currentList.items.forEach((item: ToDoItem) => {
-      if (item.addedBy && stats.addedItems.hasOwnProperty(item.addedBy)) {
+      if (item.addedBy && item.addedBy in stats.addedItems) {
         stats.addedItems[item.addedBy]++;
         
         // Si el item está marcado como comprado, también contar como comprado

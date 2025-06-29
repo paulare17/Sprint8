@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator, enableNetwork } from 'firebase/firestore';
 
 // Configuració Firebase
 const firebaseConfig = {
@@ -28,19 +28,7 @@ export const isFirebaseConfigured = (): boolean => {
   });
 };
 
-// Logging de configuració
-console.log('Firebase Config Check:', {
-  enabled: FIREBASE_ENABLED,
-  configured: isFirebaseConfigured(),
-  projectId: firebaseConfig.projectId,
-  authDomain: firebaseConfig.authDomain
-});
 
-if (isFirebaseConfigured()) {
-  console.log('✅ Firebase configuration loaded successfully');
-} else {
-  console.error('❌ Firebase configuration incomplete');
-}
 
 // Inicialitzar Firebase
 const app = initializeApp(firebaseConfig);
@@ -51,61 +39,23 @@ export const db = getFirestore(app);
 
 // Configurar Firestore amb millor gestió d'errors
 if (FIREBASE_ENABLED && isFirebaseConfigured()) {
-  // Configurar listeners d'errors globals per Firestore
-  const originalConsoleError = console.error;
-  console.error = (...args) => {
-    // Detectar errors específics de Firestore
-    const errorMessage = args.join(' ');
-    
-    if (errorMessage.includes('400') && errorMessage.includes('firestore.googleapis.com')) {
-      console.warn('🔥 Firestore 400 Error detected - This is usually due to:');
-      console.warn('1. Firestore security rules being too restrictive');
-      console.warn('2. Project configuration issues');
-      console.warn('3. Database not properly initialized');
-      console.warn('4. Network connectivity problems');
-      console.warn('💡 The app will continue working with local data');
-    }
-    
-    if (errorMessage.includes('firestore') && errorMessage.includes('offline')) {
-      console.warn('🔥 Firestore offline mode activated');
-    }
-    
-    // Cridar el console.error original
-    originalConsoleError.apply(console, args);
-  };
-
   // Intentar habilitar la xarxa de Firestore
-  try {
-    enableNetwork(db).catch((error) => {
-      console.warn('⚠️ Could not enable Firestore network:', error.message);
-    });
-  } catch (error) {
-    console.warn('⚠️ Firestore network configuration failed:', error);
-  }
+  enableNetwork(db).catch(() => {
+    // Ignorar errors de xarxa
+  });
 }
 
 // Funcions d'utilitat per gestionar la xarxa de Firestore
 export const enableFirebaseNetwork = async (): Promise<boolean> => {
   try {
     await enableNetwork(db);
-    console.log('✅ Firestore network enabled');
     return true;
-  } catch (error) {
-    console.error('❌ Failed to enable Firestore network:', error);
+  } catch {
     return false;
   }
 };
 
-export const disableFirebaseNetwork = async (): Promise<boolean> => {
-  try {
-    await disableNetwork(db);
-    console.log('✅ Firestore network disabled (offline mode)');
-    return true;
-  } catch (error) {
-    console.error('❌ Failed to disable Firestore network:', error);
-    return false;
-  }
-};
+
 
 // Detectar estat de la xarxa
 export const checkFirestoreConnection = async (): Promise<'online' | 'offline' | 'error'> => {
@@ -133,8 +83,7 @@ export const checkFirestoreConnection = async (): Promise<'online' | 'offline' |
 
     const result = await testPromise;
     return result as 'online' | 'offline';
-  } catch (error) {
-    console.warn('Firestore connection check failed:', error);
+  } catch {
     return 'error';
   }
 };

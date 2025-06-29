@@ -36,9 +36,10 @@ const CreateListForm: React.FC<CreateListFormProps> = ({ onListCreated, onCancel
       setError('');
       const newListId = await createNewList(listName.trim(), postalCode.trim());
       onListCreated(newListId);
-    } catch (error) {
-      console.error('Error creating list:', error);
-      setError('Error al crear la llista. Torna-ho a intentar.');
+    } catch {
+      setError('Error creant la llista');
+    } finally {
+      setIsLoading(false);
     }
   };
 

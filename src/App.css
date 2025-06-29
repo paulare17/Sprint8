@@ -32,7 +32,7 @@
 .inicia-button {
   margin-top: 50px;
   background-color: var(--primary-color);
-  /* border-style: outset !important; */
+
 }
 
 .img-preview {
@@ -70,7 +70,7 @@
 fieldset {
   margin-top: 10px;
   border-radius: 12px;
-  /* border-color: red; */
+
   border-style: outset;
 }
 
@@ -137,6 +137,7 @@ fieldset {
 .todo-container {
   max-width: 500px;
   margin: 0 auto;
+
   padding: 20px;
   justify-content: center;
 }
@@ -168,9 +169,8 @@ fieldset {
   border: 1px solid var(--color-border-medium);
   border-radius: 4px;
   font-size: 16px;
-  /* flex-shrink: 0;    No se encogerá aunque falte espacio */
-  /* flex-grow: 0;      No crecerá aunque sobre espacio */
-  width: 225px;      /* Ancho fijo (ajusta según prefieras) */
+  width: 225px;   
+
   min-width: 150px;
 }
 
@@ -199,7 +199,7 @@ fieldset {
   border-color: var(--color-success);
 }
 
-/* CORREGIM: Aplicar opacitat només si existeixen aquests elements */
+/*aplicar opacitat només si existeixen aquests elements */
 .task-checkbox:checked + .task-content .product-info-mini {
   opacity: 0.7;
 }
@@ -293,7 +293,7 @@ fieldset {
 }
 
 .pending-count {
-  background-color: var(--color-warning);
+  background-color: var(--color-yellow);
   color: var(--color-black);
   padding: 4px 8px;
   border-radius: 12px;
@@ -543,10 +543,7 @@ fieldset {
   font-size: 14px;
 }
 
-.no-list-warning {
-  color: #f59e0b !important;
-  font-weight: 500 !important;
-}
+
 
 .map-container-wrapper {
   position: relative;
@@ -1411,159 +1408,7 @@ fieldset {
 
 /* ============ FIREBASE ERROR HANDLER ============ */
 /* Firebase Error Handler Styles */
-.firebase-error-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 9999;
-  padding: 12px 20px;
-  color: white;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  animation: slideDown 0.3s ease-out;
-}
 
-.firebase-error-banner.warning {
-  background: linear-gradient(135deg, #f39c12, #e67e22);
-}
-
-.firebase-error-banner.error {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-}
-
-.firebase-error-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.firebase-error-icon {
-  font-size: 1.5em;
-  flex-shrink: 0;
-}
-
-.firebase-error-message {
-  flex: 1;
-  text-align: left;
-}
-
-.firebase-error-message strong {
-  display: block;
-  font-size: 1em;
-  margin-bottom: 4px;
-}
-
-.firebase-error-time,
-.firebase-retry-count {
-  font-size: 0.85em;
-  opacity: 0.9;
-  margin-top: 2px;
-}
-
-.firebase-error-details {
-  font-size: 0.85em;
-  opacity: 0.9;
-  margin-top: 4px;
-  font-style: italic;
-}
-
-.firebase-error-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.firebase-retry-button,
-.firebase-dismiss-button,
-.firebase-diagnostic-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9em;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.firebase-retry-button:hover:not(:disabled),
-.firebase-dismiss-button:hover,
-.firebase-diagnostic-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-.firebase-retry-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.firebase-diagnostic {
-  margin-top: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  font-size: 0.85em;
-}
-
-.firebase-diagnostic h4 {
-  margin: 0 0 8px 0;
-  font-size: 0.9em;
-}
-
-.firebase-diagnostic ul {
-  margin: 0;
-  padding-left: 16px;
-}
-
-.firebase-diagnostic li {
-  margin: 4px 0;
-}
-
-.firebase-diagnostic code {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Adjust main content when banner is visible */
-.firebase-error-banner + * {
-  margin-top: 60px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .firebase-error-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 12px;
-  }
-  
-  .firebase-error-message {
-    text-align: center;
-  }
-  
-  .firebase-error-actions {
-    justify-content: center;
-  }
-}
 
 /* ============ USER INFO ============ */
 .user-info {

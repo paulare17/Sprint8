@@ -9,13 +9,12 @@ const RegisterPage: React.FC = () => {
   const [showLogin, setShowLogin] = useState(false);
 
   const handleUserRegistered = (postalCode: string) => {
-    console.log('Usuari registrat amb codi postal:', postalCode);
-    // Després del registre, redirigir a la pàgina principal
-    navigate('/');
+    // Redirigir a la pàgina principal després del registre
+    navigate('/', { replace: true });
   };
 
   const handlePostalCodeChange = (postalCode: string) => {
-    console.log('Codi postal canviat:', postalCode);
+    // Actualitzar el codi postal si és necessari
   };
 
   return (

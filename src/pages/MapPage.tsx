@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { useShoppingList } from '../contexts/ShoppingListContext';
 import { supermarketService, type Supermarket } from '../services/supermarketService';
 import NoListSelected from '../components/NoListSelected';
@@ -23,41 +23,31 @@ const MapPage: React.FC = () => {
 
   // Inicialitzar mapa només una vegada
   useEffect(() => {
-    console.log('🚀 Iniciant MapPage useEffect...');
-    
     if (!mapContainer.current) {
-      console.log('❌ mapContainer.current no està disponible');
       return;
     }
     
     if (map.current) {
-      console.log('✅ Mapa ja existeix, sortint...');
       return;
     }
 
     const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-    console.log('🔑 Token Mapbox:', mapboxToken ? `${mapboxToken.substring(0, 10)}...` : 'NO TROBAT');
     
     if (!mapboxToken) {
-      console.error('❌ Mapbox token not found');
       setMapError('Token de Mapbox no trobat');
       setIsLoading(false);
       return;
     }
 
     try {
-      console.log('🗺️ Configurant Mapbox token...');
       mapboxgl.accessToken = mapboxToken;
 
       // No crear el mapa si no tenim una llista amb codi postal
       if (!currentList?.postalCode) {
-        console.log('⏸️ No es pot crear el mapa sense una llista amb codi postal');
         setMapError('Selecciona una llista amb codi postal per veure el mapa');
         setIsLoading(false);
         return;
       }
-
-      console.log('🗺️ Creant nou mapa...');
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v12',
@@ -65,31 +55,27 @@ const MapPage: React.FC = () => {
         zoom: 13
       });
 
-      console.log('🗺️ Mapa creat, esperant event "load"...');
+     
 
       // Timeout de seguretat
       const timeout = setTimeout(() => {
-        console.warn('⏰ Timeout: el mapa no s\'ha carregat en 15 segons');
         setMapError('Timeout carregant el mapa');
         setIsLoading(false);
       }, 15000);
 
       map.current.on('load', () => {
-        console.log('🎉 Mapa carregat correctament!');
         clearTimeout(timeout); // Cancel·lar timeout quan el mapa es carrega
         setIsLoading(false);
         setMapError(null);
       });
 
-      map.current.on('error', (e) => {
-        console.error('❌ Error del mapa:', e);
+      map.current.on('error', () => {
         clearTimeout(timeout);
         setMapError('Error carregant el mapa');
         setIsLoading(false);
       });
 
       return () => {
-        console.log('🧹 Netejant mapa...');
         clearTimeout(timeout);
         if (map.current) {
           map.current.remove();
@@ -97,7 +83,6 @@ const MapPage: React.FC = () => {
         }
       };
     } catch (error) {
-      console.error('❌ Error inicialitzant mapa:', error);
       setMapError(`Error: ${error}`);
       setIsLoading(false);
     }
@@ -105,15 +90,7 @@ const MapPage: React.FC = () => {
 
   // Carregar supermercats quan el mapa estigui llest i tinguem una llista
   useEffect(() => {
-    console.log('🔍 useEffect supermercats - Estat:', {
-      mapExists: !!map.current,
-      isLoading,
-      hasCurrentList: !!currentList,
-      postalCode: currentList?.postalCode
-    });
-
     if (!map.current || isLoading || !currentList?.postalCode) {
-      console.log('⏸️ Sortint del useEffect supermercats - condicions no completes');
       return;
     }
 
@@ -121,19 +98,13 @@ const MapPage: React.FC = () => {
 
     const loadRealSupermarkets = async () => {
       try {
-        console.log(`🔍 Carregant supermercats reals per codi postal ${currentList.postalCode}...`);
-        
         const realSupermarkets = await supermarketService.getAllNearbySupermarkets(currentList.postalCode);
         
         if (cancelled) {
-          console.log('🚫 Request cancel·lat');
           return;
         }
 
-        console.log(`📍 Trobats ${realSupermarkets.length} supermercats reals per ${currentList.postalCode}`);
-
         if (realSupermarkets.length === 0) {
-          console.log('❌ No s\'han trobat supermercats a la zona');
           setMapError(`No s'han trobat supermercats a la zona ${currentList.postalCode}`);
           return;
         }
@@ -149,7 +120,6 @@ const MapPage: React.FC = () => {
           const avgLat = realSupermarkets.reduce((sum: number, s: Supermarket) => sum + s.coordinates.lat, 0) / realSupermarkets.length;
           const avgLng = realSupermarkets.reduce((sum: number, s: Supermarket) => sum + s.coordinates.lng, 0) / realSupermarkets.length;
           
-          console.log(`🎯 Centrant mapa a: [${avgLng}, ${avgLat}]`);
           map.current.flyTo({
             center: [avgLng, avgLat],
             zoom: 13
@@ -197,10 +167,7 @@ const MapPage: React.FC = () => {
             .addTo(map.current!);
         });
 
-        console.log(`✅ ${realSupermarkets.length} marcadors afegits al mapa`);
-
       } catch (error) {
-        console.error(`❌ Error carregant supermercats per ${currentList.postalCode}:`, error);
         
         if (!cancelled) {
           setMapError(`Error carregant supermercats: ${error}`);
@@ -213,7 +180,7 @@ const MapPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [isLoading, currentList?.postalCode, currentList?.id, currentList?.items]); // Afegir dependències per actualitzar marcadors quan canvia la llista o els productes
+  }, [isLoading, currentList]); // Afegir dependències per actualitzar marcadors quan canvia la llista
 
   // Función para añadir producto al supermercado seleccionado
   const handleAddProductToSupermarket = (e: React.FormEvent) => {
@@ -239,8 +206,6 @@ const MapPage: React.FC = () => {
     
     // Limpiar el input
     setNewProductName('');
-    
-    console.log(`✅ Producte "${newProductName.trim()}" afegit a ${selectedSupermarket.name}`);
   };
 
   if (!userProfile) {

@@ -13,7 +13,7 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AddHomeIcon from "@mui/icons-material/AddHome";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 const pages = ["Calendari", "Gràfics", "Mapa", "Pendents", "Llistes"];
 const settings = ["Perfil", "Tancar sessió"];
@@ -73,8 +73,8 @@ const handleNavClick = (page: string) => {
       try {
         await logout();
         navigate('/');
-      } catch (error) {
-        console.error('Error logging out:', error);
+      } catch {
+        // Error handled by AuthContext
       }
     }
   };

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 interface UserData {
   user: string;
@@ -131,8 +131,7 @@ function FormUser({ onUserRegistered, onPostalCodeChange, onSwitchToLogin }: For
       }, 2000);
 
     } catch (error: unknown) {
-      console.error('Error registering user:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error en registrar usuari';
+      const errorMessage = error instanceof Error ? error.message : 'Error desconegut en el registre';
       setErrors([errorMessage]);
     } finally {
       setIsLoading(false);

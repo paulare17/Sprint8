@@ -30,8 +30,6 @@ import {
       }
     ): Promise<UserProfile> {
       try {
-        console.log('🔄 Updating user profile...', { uid, updates });
-
         const user = auth.currentUser;
         if (!user || user.uid !== uid) {
           throw new Error('Usuario no autenticado o UID no coincide');
@@ -42,7 +40,6 @@ import {
           await updateProfile(user, {
             displayName: updates.displayName
           });
-          console.log('✅ Display name updated in Auth');
         }
 
         // 2. Obtenir perfil actual de Firestore
@@ -65,11 +62,9 @@ import {
 
         // 4. Guardar a Firestore
         await setDoc(userDocRef, updatedProfile, { merge: true });
-        console.log('✅ Profile updated in Firestore');
 
         return updatedProfile;
       } catch (error: unknown) {
-        console.error('❌ Error updating user profile:', error);
         const firebaseError = error as { code?: string, message?: string };
         throw new Error(firebaseError.message || 'Error actualitzant el perfil');
       }
@@ -83,18 +78,14 @@ import {
       listOption: 'new-list' | 'add-to-list'
     ): Promise<UserProfile> {
       try {
-        console.log('🔥 Starting user registration...', { email, displayName });
-        
         // Crear usuari amb Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        console.log('✅ User created in Auth:', user.uid);
   
         // Actualitzar perfil amb nom
         await updateProfile(user, {
           displayName: displayName
         });
-        console.log('✅ Profile updated with display name');
   
         // Crear perfil a Firestore
         const userProfile: UserProfile = {
@@ -108,17 +99,13 @@ import {
 
         try {
           await setDoc(doc(db, 'users', user.uid), userProfile);
-          console.log('✅ User profile saved to Firestore');
-        } catch (firestoreError) {
-          console.warn('⚠️ Failed to save to Firestore, but user created in Auth:', firestoreError);
-          
+        } catch {
           // Si Firestore falla, continuar amb el perfil local
           // L'usuari pot seguir utilitzant l'app amb les dades d'Auth
         }
   
         return userProfile;
       } catch (error: unknown) {
-        console.error('❌ Error registering user:', error);
         const firebaseError = error as { code?: string };
         throw new Error(this.getErrorMessage(firebaseError.code || 'unknown'));
       }
@@ -126,22 +113,18 @@ import {
   
     async loginUser(email: string, password: string): Promise<UserProfile> {
       try {
-        console.log('🔥 Starting user login...', { email });
-        
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        console.log('✅ User authenticated:', user.uid);
 
         // Intentar obtenir perfil de Firestore amb fallback
         try {
           const userDoc = await this.getDocumentWithRetry('users', user.uid);
           
           if (userDoc && userDoc.exists()) {
-            console.log('✅ User profile loaded from Firestore');
             return userDoc.data() as UserProfile;
           }
-        } catch (firestoreError) {
-          console.warn('⚠️ Failed to load from Firestore, using Auth data:', firestoreError);
+        } catch {
+          // Continue to fallback
         }
 
         // Fallback: crear perfil temporal amb dades d'Auth
@@ -154,12 +137,9 @@ import {
           createdAt: new Date()
         };
         
-        console.log('✅ Using fallback profile');
         return fallbackProfile;
         
       } catch (error: unknown) {
-        console.error('❌ Error logging in:', error);
-        
         // Si és un error de connectivitat, proporcionar un fallback
         if (this.isNetworkError(error)) {
           throw new Error('Error de connexió. Comprova la teva connexió a internet i torna-ho a intentar.');
@@ -173,9 +153,7 @@ import {
     async logoutUser(): Promise<void> {
       try {
         await signOut(auth);
-        console.log('✅ User logged out successfully');
-      } catch (error) {
-        console.error('❌ Error logging out:', error);
+      } catch {
         throw new Error('Error en tancar sessió');
       }
     }
@@ -191,7 +169,7 @@ import {
             return userDoc.data() as UserProfile;
           }
         } catch {
-          console.warn('⚠️ Firestore unavailable, using Auth data');
+          // Continue to fallback
         }
 
         // Fallback amb dades d'Auth
@@ -204,8 +182,7 @@ import {
           createdAt: new Date()
         };
         
-      } catch (error) {
-        console.error('❌ Error getting user profile:', error);
+      } catch {
         return null;
       }
     }
@@ -217,9 +194,6 @@ import {
           const docRef = doc(db, collection, docId);
           return await getDoc(docRef);
         } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          console.warn(`⚠️ Firestore attempt ${i + 1} failed:`, errorMessage);
-          
           if (i === maxRetries - 1) {
             throw error;
           }
