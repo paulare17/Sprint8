@@ -1,11 +1,11 @@
-import express, { Request, Response } from 'express';
-import { supermarketService } from '../services/supermarketService';
-import { Supermarket } from '../models/Supermarket';
+const express = require('express');
+const { supermarketService } = require('../services/supermarketService');
+const { Supermarket } = require('../models/Supermarket');
 
 const router = express.Router();
 
 // 🔍 GET /api/supermarkets/postal/:postalCode - Obtenir supermercats per codi postal
-router.get('/postal/:postalCode', async (req: Request, res: Response) => {
+router.get('/postal/:postalCode', async (req: any, res: any) => {
   try {
     const { postalCode } = req.params;
     const forceRefresh = req.query.forceRefresh === 'true';
@@ -27,7 +27,7 @@ router.get('/postal/:postalCode', async (req: Request, res: Response) => {
       cached: !forceRefresh
     });
     
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       error: 'Error obtenint supermercats',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -36,7 +36,7 @@ router.get('/postal/:postalCode', async (req: Request, res: Response) => {
 });
 
 // 🌍 GET /api/supermarkets/nearby - Obtenir supermercats propers per coordenades
-router.get('/nearby', async (req: Request, res: Response) => {
+router.get('/nearby', async (req: any, res: any) => {
   try {
     const { lng, lat, maxDistance } = req.query;
     
@@ -66,7 +66,7 @@ router.get('/nearby', async (req: Request, res: Response) => {
       maxDistance: distance
     });
     
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       error: 'Error obtenint supermercats propers',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -75,7 +75,7 @@ router.get('/nearby', async (req: Request, res: Response) => {
 });
 
 // 🏪 POST /api/supermarkets - Afegir supermercat manual
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: any, res: any) => {
   try {
     const { name, address, postalCode, chain, lng, lat } = req.body;
     
@@ -104,7 +104,7 @@ router.post('/', async (req: Request, res: Response) => {
       message: 'Supermercat afegit correctament'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       error: 'Error afegint supermercat',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -113,7 +113,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // 📈 GET /api/supermarkets/stats - Obtenir estadístiques globals
-router.get('/stats', async (req: Request, res: Response) => {
+router.get('/stats', async (req: any, res: any) => {
   try {
     const stats = await supermarketService.getSupermarketStats();
     
@@ -122,7 +122,7 @@ router.get('/stats', async (req: Request, res: Response) => {
       data: stats
     });
     
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       error: 'Error obtenint estadístiques',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -131,7 +131,7 @@ router.get('/stats', async (req: Request, res: Response) => {
 });
 
 // 🔄 POST /api/supermarkets/refresh/:postalCode - Forçar actualització cache
-router.post('/refresh/:postalCode', async (req: Request, res: Response) => {
+router.post('/refresh/:postalCode', async (req: any, res: any) => {
   try {
     const { postalCode } = req.params;
     
@@ -151,7 +151,7 @@ router.post('/refresh/:postalCode', async (req: Request, res: Response) => {
       refreshed: true
     });
     
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       error: 'Error actualitzant cache',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -160,7 +160,7 @@ router.post('/refresh/:postalCode', async (req: Request, res: Response) => {
 });
 
 // 🔍 GET /api/supermarkets/search - Buscar supermercats per nom o cadena
-router.get('/search', async (req: Request, res: Response) => {
+router.get('/search', async (req: any, res: any) => {
   try {
     const { q, postalCode } = req.query;
     
@@ -193,7 +193,7 @@ router.get('/search', async (req: Request, res: Response) => {
       postalCode: postalCode || null
     });
     
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       error: 'Error cercant supermercats',
       details: error instanceof Error ? error.message : 'Error desconegut'
@@ -201,4 +201,4 @@ router.get('/search', async (req: Request, res: Response) => {
   }
 });
 
-export default router; 
+module.exports = router; 
