@@ -177,13 +177,6 @@ fieldset {
 .todo-list {
   margin-top: 20px;
 }
-/* 
-.supermarket-selector {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center !important;
-} */
 
 
 /* canvia el text sense haver d'usar lògica, s'activa quan es marca el checbox ( i aquest aplica checked)*/
@@ -225,7 +218,7 @@ fieldset {
   }
 }
 
-/* ============ LIST OVERVIEW CARDS ============ */
+/* llista */
 .lists-overview {
   display: grid;
   gap: 20px;
