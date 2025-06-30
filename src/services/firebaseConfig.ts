@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, enableNetwork } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, enableNetwork } from 'firebase/firestore';
 
 // Configuració Firebase
 const firebaseConfig = {

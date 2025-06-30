@@ -1,8 +1,8 @@
-const express = require('express');
+const expressRouter = require('express');
 const { supermarketService } = require('../services/supermarketService');
 const { Supermarket } = require('../models/Supermarket');
 
-const router = express.Router();
+const router = expressRouter.Router();
 
 // 🔍 GET /api/supermarkets/postal/:postalCode - Obtenir supermercats per codi postal
 router.get('/postal/:postalCode', async (req: any, res: any) => {

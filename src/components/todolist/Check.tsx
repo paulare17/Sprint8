@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react'
+import React from 'react'
 import type { ToDoItem } from '../types';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 

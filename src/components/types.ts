@@ -1,5 +1,3 @@
-import type { Supermarket } from '../services/supermarketService';
-
 export interface ToDoItem {
   id: string;
   task: string;

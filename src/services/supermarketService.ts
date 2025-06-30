@@ -63,7 +63,6 @@ interface MongoSupermarket {
 }
 
 class SupermarketService {
-  private readonly mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
   private readonly geoapifyKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
   private readonly backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 

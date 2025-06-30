@@ -8,12 +8,12 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [showLogin, setShowLogin] = useState(false);
 
-  const handleUserRegistered = (postalCode: string) => {
+  const handleUserRegistered = (_postalCode: string) => {
     // Redirigir a la pàgina principal després del registre
     navigate('/', { replace: true });
   };
 
-  const handlePostalCodeChange = (postalCode: string) => {
+  const handlePostalCodeChange = (_postalCode: string) => {
     // Actualitzar el codi postal si és necessari
   };
 

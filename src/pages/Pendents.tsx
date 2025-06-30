@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Container from "../components/todolist/Container";
 import { useShoppingList } from "../contexts/ShoppingListContext";
 import { useAuth } from "../hooks/useAuth";

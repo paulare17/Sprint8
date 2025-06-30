@@ -38,8 +38,6 @@ const CreateListForm: React.FC<CreateListFormProps> = ({ onListCreated, onCancel
       onListCreated(newListId);
     } catch {
       setError('Error creant la llista');
-    } finally {
-      setIsLoading(false);
     }
   };
 
