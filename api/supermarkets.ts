@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectToDatabase } from './config/database';
-import { SupermarketService } from './services/supermarketService';
-import { Supermarket } from './models/Supermarket';
+import { connectToDatabase } from '../lib/config/database';
+import { SupermarketService } from '../lib/services/supermarketService';
+import { Supermarket } from '../lib/models/Supermarket';
 
 const supermarketService = new SupermarketService();
 
