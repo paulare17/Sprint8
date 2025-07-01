@@ -6,7 +6,7 @@
     "dev": "vite",
     "dev:server": "ts-node-dev --respawn --transpile-only api/index.ts",
     "dev:fullstack": "concurrently \"npm run dev\" \"npm run dev:server\"",
-    "build": "tsc -b && vite build && tsc -p api/tsconfig.json",
+    "build": "tsc -b && vite build",
     "build:client": "tsc -b && vite build",
     "build:server": "tsc -p api/tsconfig.json",
     "lint": "eslint .",
