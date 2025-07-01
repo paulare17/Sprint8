@@ -1,101 +1,167 @@
-# 🛒 Shopping List App - React + TypeScript + Vite + MongoDB
+# 🛒 Shopping List App - React + TypeScript + Vite + MongoDB + Vercel
 
-**Tecnologies utilitzades:** React, TypeScript, Vite, Material-UI, MongoDB, Firebase, Express.js
+Una aplicación moderna de listas de compra con funcionalidades avanzadas de mapas, geolocalización y colaboración en tiempo real.
 
-**APIs externes:** 
-- 🗺️ Mapbox (visualització de mapes)
-- 🌍 Geoapify (dades geoespacials de supermercats)
-- 🥫 OpenFoodFacts (informació de productes)
-- 🔥 Firebase (autenticació i dades d'usuari en temps real)
-
-## 🏗️ Arquitectura Híbrida
-
-Aquest projecte utilitza una **arquitectura híbrida innovadora**:
+## 🏗️ Arquitectura
 
 ### Frontend (React + Vite)
-- 🔥 **Firebase Firestore**: Gestió d'usuaris, llistes compartides, calendari i sincronització en temps real
-- 🏪 **MongoDB via API**: Cache intel·ligent de supermercats, dades geoespacials i analítiques
+- ⚛️ **React 19** con TypeScript
+- 🎨 **Material-UI** para componentes
+- 🔥 **Firebase** para autenticación y datos de usuario en tiempo real
+- 🗺️ **Mapbox GL** para visualización de mapas
 
-### Backend (Express + MongoDB)
-- 📊 **Cache intel·ligent**: Les dades de supermercats es guarden a MongoDB per evitar crides constants a APIs externes
-- 🌍 **Capacitats geoespacials**: Queries eficients per trobar supermercats propers
-- 📈 **Analítiques**: Seguiment de visites, ratings d'usuaris i estadístiques
+### Backend (API Serverless en Vercel)
+- 🚀 **Vercel Functions** con TypeScript
+- 🍃 **MongoDB** para persistencia de datos
+- 🌍 **Geoapify API** para datos de supermercados
+- 🔄 **Cache inteligente** para optimizar consultas
 
-## ✨ Funcionalitats principals
+## ✨ Funcionalidades principales
 
-### 🗺️ **Sistema de Mapes Intel·ligent**
-- Mapa interactiu amb Mapbox
-- **Cache automàtic**: Primera cerca crida a Geoapify → Guarda a MongoDB → Següents cerques des de MongoDB
-- Marcadors diferents per supermercats amb/sense productes assignats
-- Cerca geoespacial per proximitat
+### 🗺️ **Sistema de Mapas Inteligente**
+- Mapa interactivo con supermercados cercanos
+- Cache automático de datos de supermercados
+- Búsqueda geoespacial optimizada
+- Marcadores personalizados por tipo de supermercado
 
-### 🏪 **Gestió de Supermercats**
-- Base de dades pròpia amb dades enriquides
-- Ratings d'usuaris i comptador de visites
-- Possibilitat d'afegir supermercats manualment
-- Cerca per nom, cadena o ubicació
+### 🏪 **Gestión de Supermercados**
+- Base de datos propia con datos enriquecidos
+- Ratings de usuarios y contador de visitas
+- Posibilidad de añadir supermercados manualmente
+- Búsqueda avanzada por nombre, cadena o ubicación
 
-### 📋 **Llistes de Compra Col·laboratives**
-- Creació i gestió de llistes compartides
-- Assignació de productes a supermercats específics
-- Sincronització en temps real entre usuaris
-- Històrial de compres
+### 📋 **Listas de Compra Colaborativas**
+- Creación y gestión de listas compartidas
+- Asignación de productos a supermercatos específicos
+- Sincronización en tiempo real
+- Historial completo de compras
 
-### 📅 **Calendari i Recordatoris**
-- Programació de recordatoris de compra
-- Integració amb les llistes i productes
-- Vista de calendari amb esdeveniments personalitzats
+### 📅 **Calendario y Recordatorios**
+- Programación de recordatorios
+- Integración con listas y productos
+- Vista de calendario personalizada
 
+## 🚀 Configuración y Despliegue
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### Requisitos previos
+- Node.js 18+ 
+- Cuenta de MongoDB Atlas
+- Cuenta de Vercel
+- API Key de Geoapify
+- Proyecto de Firebase configurado
 
-Currently, two official plugins are available:
+### Variables de entorno
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+#### En Vercel (para el backend):
+```bash
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/sprint8?retryWrites=true&w=majority
+GEOAPIFY_API_KEY=tu_clave_de_geoapify_aqui
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+#### En desarrollo local (archivo .env en la raíz):
+```bash
+# Backend
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/sprint8?retryWrites=true&w=majority
+GEOAPIFY_API_KEY=tu_clave_de_geoapify_aqui
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+# Frontend (opcional - se detecta automáticamente)
+VITE_BACKEND_URL=http://localhost:3000
 ```
+
+### 📦 Instalación local
+
+```bash
+# Clonar el repositorio
+git clone [tu-repo]
+cd sprint8
+
+# Instalar dependencias
+npm install
+
+# Desarrollo (solo frontend)
+npm run dev
+
+# Desarrollo (frontend + backend local)
+npm run dev:fullstack
+
+# Build de producción
+npm run build
+```
+
+### 🌐 Despliegue en Vercel
+
+1. **Conectar repositorio a Vercel**
+2. **Configurar variables de entorno en Vercel:**
+   - `MONGODB_URI`: Tu string de conexión de MongoDB Atlas
+   - `GEOAPIFY_API_KEY`: Tu clave de API de Geoapify
+
+3. **Configuración automática:** El archivo `vercel.json` ya está configurado
+
+4. **Deploy automático:** Cada push a main despliega automáticamente
+
+### 🗃️ Configuración de MongoDB
+
+1. Crear cluster en MongoDB Atlas
+2. Configurar IP whitelist (0.0.0.0/0 para Vercel)
+3. Crear usuario de base de datos
+4. Obtener connection string
+
+### 🔑 Configuración de APIs externas
+
+#### Geoapify (obligatorio)
+1. Registrarse en [Geoapify](https://www.geoapify.com/)
+2. Obtener API key gratuita
+3. Añadir a variables de entorno
+
+#### Firebase (para autenticación)
+1. Crear proyecto en Firebase Console
+2. Configurar Authentication
+3. Añadir configuración en `src/services/firebaseConfig.ts`
+
+## 📱 Scripts disponibles
+
+```bash
+npm run dev              # Desarrollo frontend
+npm run dev:server       # Desarrollo backend local
+npm run dev:fullstack    # Desarrollo completo
+npm run build           # Build completo (frontend + backend)
+npm run build:client    # Build solo frontend
+npm run build:server    # Build solo backend
+npm run vercel-build    # Build para Vercel
+```
+
+## 🔧 Estructura del proyecto
+
+```
+Sprint8/
+├── api/                     # Backend serverless
+│   ├── config/             # Configuración DB
+│   ├── models/             # Modelos MongoDB
+│   ├── services/           # Lógica de negocio
+│   ├── index.ts           # Handler principal Vercel
+│   ├── supermarkets.ts    # API supermercados
+│   └── health.ts          # Health check
+├── src/                    # Frontend React
+│   ├── components/        # Componentes React
+│   ├── pages/            # Páginas
+│   ├── services/         # Servicios frontend
+│   ├── contexts/         # Contextos React
+│   └── hooks/           # Custom hooks
+├── vercel.json           # Configuración Vercel
+└── package.json         # Dependencias
+```
+
+## 🔄 Flujo de datos
+
+1. **Frontend** solicita datos de supermercados
+2. **API Backend** verifica cache en MongoDB
+3. Si no hay cache, consulta **Geoapify**
+4. Guarda resultados en **MongoDB** para futuras consultas
+5. Devuelve datos optimizados al frontend
+
+## 🛠️ Tecnologías utilizadas
+
+- **Frontend:** React 19, TypeScript, Vite, Material-UI, Firebase
+- **Backend:** Vercel Functions, MongoDB, Mongoose, Axios
+- **APIs:** Geoapify, Mapbox GL, Firebase, OpenFoodFacts
+- **Deploy:** Vercel (serverless)

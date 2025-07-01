@@ -257,4 +257,5 @@ class SupermarketService {
   }
 }
 
+export { SupermarketService };
 export const supermarketService = new SupermarketService(); 
