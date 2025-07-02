@@ -1,14 +1,14 @@
 # 🛒 Shopping List App - React + TypeScript + Vite + MongoDB + Vercel
 
-Una aplicación moderna de listas de compra con funcionalidades avanzadas de mapas, geolocalización y colaboración en tiempo real.
+Una aplicació per a gestió de llista de la compra entre usuaris, vinculat a un codi postal.
 
 ## 🏗️ Arquitectura
 
 ### Frontend (React + Vite)
-- ⚛️ **React 19** con TypeScript
-- 🎨 **Material-UI** para componentes
-- 🔥 **Firebase** para autenticación y datos de usuario en tiempo real
-- 🗺️ **Mapbox GL** para visualización de mapas
+- ⚛️ **React 19** amb TypeScript
+- 🎨 **Material-UI** per a components
+- 🔥 **Firebase** per a autenticació i dades de l'usuari en temps real
+- 🗺️ **Mapbox GL** per a 
 
 ### Backend (API Serverless en Vercel)
 - 🚀 **Vercel Functions** con TypeScript

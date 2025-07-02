@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Validar format del codi postal
       if (!postalCode || !/^[0-9]{5}$/.test(postalCode)) {
         return res.status(400).json({
-          error: 'Format de codi postal invàlid. Ha de ser 5 dígits (ex: 08001)'
+          error: 'Format de codi postal invàlid. Ha de ser 5 dígits'
         });
       }
 

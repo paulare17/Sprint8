@@ -33,11 +33,11 @@ export interface UserProfile {
   joinedLists?: string[]; // IDs de les llistes a les quals pertany
 }
 
-// Calendar and reminder types
+// Calendar en reminder types
 export interface CalendarEvent {
   id: string;
   title: string;
-  date: string; // ISO date string
+  date: string; 
   type: 'product_added' | 'purchase_completed' | 'reminder';
   listId: string;
   listName: string;

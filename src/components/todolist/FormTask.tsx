@@ -33,7 +33,7 @@ const FormTask: React.FC<ToDoListProps> = ({ handleAddItem }) => {
 
     handleAddItem(newItem);
 
-    // Registrar evento en el calendario
+    // Registrar event al calendari
     if (currentList) {
       const itemId = Date.now().toString();
       addProductAddedEvent(

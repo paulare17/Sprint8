@@ -9,10 +9,9 @@ function HomePage() {
 
   return (
     <>
-      {/* Conditional rendering based on user state */}
+    {/* {pg inici si no hi ha user} */}
       {!currentUser ? (
         <>
-          {/* Benvinguda per usuaris no autenticats */}
           <section className='inicia-section'>
             <button 
               className='inicia-button' 

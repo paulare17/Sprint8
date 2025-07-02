@@ -22,7 +22,7 @@ const NoListSelected: React.FC<NoListSelectedProps> = ({
   const { userLists, switchToList } = useShoppingList();
   const { currentUser } = useAuth();
 
-  // Si no está autenticado
+  // Si no está autenticat
   if (!currentUser) {
     return (
       <div className="page-container">
