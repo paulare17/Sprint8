@@ -1,47 +1,47 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useShoppingList } from '../contexts/ShoppingListContext';
-import { useAuth } from '../hooks/useAuth';
-import CreateListForm from '../components/CreateListForm';
+import { useShoppingList } from '../contexts/ShoppingListContext'; //gestiona les llistes de la compra
+import { useAuth } from '../hooks/useAuth'; //autenticació d'usuari
+import CreateListForm from '../components/CreateListForm'; //component q gestiona la creació de llistes
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 const ListsPage: React.FC = () => {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
   const { 
-    userLists, 
-    currentList, 
-    switchToList, 
-    joinList, 
-    leaveList, 
-    deleteList,
-    isLoading 
+    userLists,  //array en llistes d'usuari
+    currentList, //llista seleccionada
+    switchToList, //funció per canviar de llista
+    joinList, //funció per crear la llista
+    leaveList, //funció per abandonar la llista
+    deleteList, //eliminar la llista 
+    isLoading  //estat de càrrega 
   } = useShoppingList();
   
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showJoinForm, setShowJoinForm] = useState(false);
-  const [joinListId, setJoinListId] = useState('');
+  const [showCreateForm, setShowCreateForm] = useState(false); //controla si es mostra el formulari de crear llista
+  const [showJoinForm, setShowJoinForm] = useState(false); //controla si es mostra o no el formulari per unirse 
+  const [joinListId, setJoinListId] = useState(''); //almacena ID de la llista
 
 
-  const handleCreateList = () => {
+  const handleCreateList = () => { //quan es crea una llista, setShowCreateForm passa a false pel q oculta el formulari i dirigeix a pendents
     setShowCreateForm(false);
-    navigate('/pendents'); // Redirigir a la pàgina de pendents
+    navigate('/pendents'); 
   };
 
   const handleJoinList = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!joinListId.trim()) {
+    if (!joinListId.trim().toUpperCase()) { //si l'id no és el mateix, surt
       return;
     }
 
-    await joinList(joinListId.trim().toUpperCase());
-    setShowJoinForm(false);
-    setJoinListId('');
+    await joinList(joinListId.trim().toUpperCase()); //espera a q passe a mayuscules i elimina espais en blanc
+    setShowJoinForm(false); //oculta el form 
+    setJoinListId(''); 
   };
 
   const handleSwitchToList = (listId: string) => {
-    switchToList(listId);
+    switchToList(listId); //busca la llista per id
     navigate('/pendents');
   };
 
@@ -52,7 +52,7 @@ const ListsPage: React.FC = () => {
   };
 
   const handleDeleteList = async (listId: string, listName: string) => {
-    if (!userProfile) return;
+    if (!userProfile) return; //s'assegura que sigue l'usuari creador qui la pot eliminar
 
     if (!confirm(`Estàs segur que vols eliminar la llista "${listName}"?\n\nAixò eliminarà tots els productes i no es podrà desfer.`)) {
       return;
@@ -69,7 +69,7 @@ const ListsPage: React.FC = () => {
     });
   };
 
-  if (showCreateForm) {
+  if (showCreateForm) { //si es veritable, mostra el form de la llista
     return (
       <div className="lists-page">
         <CreateListForm 

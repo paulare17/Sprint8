@@ -38,7 +38,7 @@ class SupermarketService {
 
   // 🎯 Mètode principal: obtenir supermercats amb cache intel·ligent
   async getSupermarketsByPostalCode(postalCode: string, forceRefresh: boolean = false): Promise<ISupermarket[]> {
-    // 1. Comprovar cache si no forcem refresh
+    // 1. Comprovar cache, si no forcem refresh
     if (!forceRefresh) {
       const cachedSupermarkets = await Supermarket.findByPostalCode(postalCode, 24); // 24h cache
       if (cachedSupermarkets.length > 0) {
@@ -46,16 +46,17 @@ class SupermarketService {
       }
     }
 
-    // 2. Si no hi ha cache o forcem refresh, obtenir de APIs externes
+    // 2. Obtenir coordenades del codi postal
     const coordinates = await this.getCoordinatesFromPostalCode(postalCode);
     
     if (!coordinates) {
       throw new Error(`No s'han pogut obtenir coordenades per al codi postal: ${postalCode}`);
     }
 
+    // 3. Buscar supermercats a APIs externes (Geoapify)
     const freshSupermarkets = await this.fetchFromGeoapify(coordinates, postalCode);
     
-    // 3. Guardar a MongoDB
+    // 4. Guardar a MongoDB
     const savedSupermarkets = await this.saveSupermarkets(freshSupermarkets);
     
     return savedSupermarkets;
@@ -116,7 +117,14 @@ class SupermarketService {
     const categories = [
       'commercial.supermarket',
       'commercial.food',
-      'commercial.marketplace'
+      'commercial.marketplace',
+      'commercial.supermarket_hypermarket',
+      'commercial.super',
+      'commercial.supermercat',
+      'commercial.supermercado',
+      'commercial.botiga',
+      'commercial.botiga_alimentaria',
+      'commercial.mercat',
     ];
 
     for (const category of categories) {
@@ -198,19 +206,6 @@ class SupermarketService {
     return savedSupermarkets;
   }
 
-  // 🏪 Afegir supermercat manual
-  async addManualSupermarket(data: Omit<SupermarketData, 'source'>): Promise<ISupermarket> {
-    const supermarketData: SupermarketData = {
-      ...data,
-      source: 'manual'
-    };
-
-    const newSupermarket = new Supermarket(supermarketData);
-    const saved = await newSupermarket.save();
-    
-    return saved;
-  }
-
   // 🧹 Utilities
   private extractChainFromName(name: string): string {
     const chains = ['Mercadona', 'Carrefour', 'Dia', 'Lidl', 'Aldi', 'Eroski', 'Condis', 'Caprabo', 'El Corte Inglés'];
@@ -239,22 +234,7 @@ class SupermarketService {
     return Array.from(uniqueMap.values());
   }
 
-  // 📈 Estadístiques bàsiques
-  async getSupermarketStats(): Promise<{ totalSupermarkets: number; chainDistribution: string[] }> {
-    const stats = await Supermarket.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalSupermarkets: { $sum: 1 },
-          chainDistribution: {
-            $push: '$chain'
-          }
-        }
-      }
-    ]);
 
-    return stats[0] || { totalSupermarkets: 0, chainDistribution: [] };
-  }
 }
 
 export { SupermarketService };

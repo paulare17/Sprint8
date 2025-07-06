@@ -310,95 +310,6 @@ class SupermarketService {
     }
   }
 
-  // 🔄 Forzar actualización del cache
-  async refreshSupermarketsCache(postalCode: string): Promise<Supermarket[]> {
-    try {
-      // Força actualització sempre amb Geoapify si tenim clau API
-      if (this.geoapifyKey) {
-        return await this.getFromGeoapifyDirect(postalCode);
-      }
-
-      // Fallback: API de Vercel
-      const response = await fetch(`/api/supermarkets/postal/${postalCode}?forceRefresh=true`);
-
-      if (response.ok) {
-        const data = await response.json();
-        return data.data.map((s: MongoSupermarket) => this.convertMongoToFrontend(s));
-      }
-
-      throw new Error('Error actualitzant cache');
-    } catch (error) {
-      console.error('Error actualitzant cache:', error);
-      return [];
-    }
-  }
-
-  // ⭐ Actualizar rating de un supermercado
-  async updateSupermarketRating(supermarketId: string, rating: number): Promise<boolean> {
-    try {
-      const response = await fetch(`/api/supermarkets/${supermarketId}/rating`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ rating }),
-      });
-
-      return response.ok;
-    } catch (error) {
-      console.error('Error actualitzant rating:', error);
-      return false;
-    }
-  }
-
-  // 📊 Registrar visita a un supermercado
-  async recordSupermarketVisit(supermarketId: string): Promise<boolean> {
-    try {
-      const response = await fetch(`/api/supermarkets/${supermarketId}/visit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      return response.ok;
-    } catch (error) {
-      console.error('Error registrant visita:', error);
-      return false;
-    }
-  }
-
-  // 🏪 Añadir supermercado manual
-  async addManualSupermarket(supermarketData: {
-    name: string;
-    address: string;
-    postalCode: string;
-    chain?: string;
-    lng: number;
-    lat: number;
-    rating?: number;
-  }): Promise<Supermarket | null> {
-    try {
-      const response = await fetch(`/api/supermarkets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(supermarketData),
-      });
-
-      if (response.ok) {
-        const data: MongoSupermarket = await response.json();
-        return this.convertMongoToFrontend(data);
-      }
-
-      return null;
-    } catch (error) {
-      console.error('Error afegint supermercat:', error);
-      return null;
-    }
-  }
-
   // 🔍 Buscar supermercados por nombre
   async searchSupermarkets(query: string, postalCode?: string): Promise<Supermarket[]> {
     try {
@@ -419,23 +330,6 @@ class SupermarketService {
     } catch (error) {
       console.error('Error cercant supermercats:', error);
       return [];
-    }
-  }
-
-  // 📈 Obtener estadísticas de supermercados
-  async getSupermarketStats(): Promise<{ totalSupermarkets: number; chainDistribution: string[] }> {
-    try {
-      const response = await fetch(`/api/supermarkets/stats`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        return data.data;
-      }
-
-      return { totalSupermarkets: 0, chainDistribution: [] };
-    } catch (error) {
-      console.error('Error obtaining statistics:', error);
-      return { totalSupermarkets: 0, chainDistribution: [] };
     }
   }
 

@@ -3,15 +3,15 @@ import type { ReactNode } from 'react';
 import type { ShoppingList, ToDoItem } from '../components/types';
 import { useAuth } from '../hooks/useAuth';
 import { 
-  collection, 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
   deleteDoc,
   query, 
-  where, 
-  onSnapshot, 
+  where,
+  onSnapshot,
   arrayUnion,
   arrayRemove,
   Timestamp
@@ -325,7 +325,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({ chil
     }
     
     const list = userLists.find(l => l.id === listId);
-    if (list) {
+    if (list) { //si sí que hi ha llista:
       setCurrentList(list);
       // Guardar l'ID de la llista seleccionada al localStorage
       localStorage.setItem('selectedListId', listId);

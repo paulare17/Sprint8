@@ -80,67 +80,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
     
-    // 🏪 POST /api/supermarkets - Afegir supermercat manual
-    else if (method === 'POST' && urlPath === '') {
-      const { name, address, postalCode, chain, lng, lat } = req.body;
-      
-      if (!name || !address || !postalCode || !lng || !lat) {
-        return res.status(400).json({
-          error: 'Camps obligatoris: name, address, postalCode, lng, lat'
-        });
-      }
-
-      const supermarketData = {
-        name: name.trim(),
-        address: address.trim(),
-        postalCode: postalCode.trim(),
-        chain: chain?.trim(),
-        location: {
-          type: 'Point' as const,
-          coordinates: [parseFloat(lng), parseFloat(lat)] as [number, number]
-        }
-      };
-
-      const newSupermarket = await supermarketService.addManualSupermarket(supermarketData);
-
-      return res.status(201).json({
-        success: true,
-        data: newSupermarket,
-        message: 'Supermercat afegit correctament'
-      });
-    }
-    
-    // 📈 GET /api/supermarkets/stats - Obtenir estadístiques globals
-    else if (method === 'GET' && urlPath === '/stats') {
-      const stats = await supermarketService.getSupermarketStats();
-      
-      return res.json({
-        success: true,
-        data: stats
-      });
-    }
-    
-    // 🔄 POST /api/supermarkets/refresh/:postalCode - Forçar actualització cache
-    else if (method === 'POST' && urlPath.match(/^\/refresh\/\d{5}$/)) {
-      const postalCode = urlPath.split('/')[2];
-      
-      if (!postalCode || !/^[0-9]{5}$/.test(postalCode)) {
-        return res.status(400).json({
-          error: 'Format de codi postal invàlid'
-        });
-      }
-
-      const supermarkets = await supermarketService.getSupermarketsByPostalCode(postalCode, true);
-      
-      return res.json({
-        success: true,
-        total: supermarkets.length,
-        data: supermarkets,
-        postalCode,
-        refreshed: true
-      });
-    }
-    
     // 🔍 GET /api/supermarkets/search - Buscar supermercats per nom o cadena
     else if (method === 'GET' && urlPath === '/search') {
       const { q, postalCode } = req.query;
@@ -172,56 +111,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         data: supermarkets,
         query: q,
         postalCode: postalCode || null
-      });
-    }
-    
-    // ⭐ PUT /api/supermarkets/:id/rating - Actualitzar rating
-    else if (method === 'PUT' && urlPath.match(/^\/[^/]+\/rating$/)) {
-      const supermarketId = urlPath.split('/')[1];
-      const { rating } = req.body;
-      
-      if (!rating || rating < 1 || rating > 5) {
-        return res.status(400).json({
-          error: 'Rating ha de ser entre 1 i 5'
-        });
-      }
-
-      const supermarket = await Supermarket.findById(supermarketId);
-      if (!supermarket) {
-        return res.status(404).json({
-          error: 'Supermercat no trobat'
-        });
-      }
-
-      // Per simplicitat, només actualitzem el rating
-      // En un sistema real, hauríem de fer una mitjana de ratings
-      (supermarket as any).rating = rating;
-      await supermarket.save();
-
-      return res.json({
-        success: true,
-        message: 'Rating actualitzat correctament'
-      });
-    }
-    
-    // 📊 POST /api/supermarkets/:id/visit - Registrar visita
-    else if (method === 'POST' && urlPath.match(/^\/[^/]+\/visit$/)) {
-      const supermarketId = urlPath.split('/')[1];
-      
-      const supermarket = await Supermarket.findById(supermarketId);
-      if (!supermarket) {
-        return res.status(404).json({
-          error: 'Supermercat no trobat'
-        });
-      }
-
-      // Registrar visita (actualitzar lastUpdated)
-      supermarket.lastUpdated = new Date();
-      await supermarket.save();
-
-      return res.json({
-        success: true,
-        message: 'Visita registrada correctament'
       });
     }
     
